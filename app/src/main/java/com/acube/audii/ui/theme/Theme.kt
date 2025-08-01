@@ -1,5 +1,4 @@
-package com.example.audii.ui.theme
-
+package com.acube.audii.ui.theme
 
 import android.app.Activity
 import android.os.Build
@@ -10,9 +9,8 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
-
+import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFFB0B0B0), // Light grey
@@ -55,11 +53,9 @@ fun AudiiTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
-
 
     MaterialTheme(
         colorScheme = colorScheme,
@@ -67,4 +63,3 @@ fun AudiiTheme(
         content = content
     )
 }
-
