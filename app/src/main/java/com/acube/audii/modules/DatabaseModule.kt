@@ -1,8 +1,7 @@
-package com.acube.audii
+package com.acube.audii.modules
 
 import android.content.Context
 import androidx.room.Room
-import com.acube.audii.model.database.AudiobookDao
 import com.acube.audii.model.database.AudiobookDatabase
 import dagger.Module
 import dagger.Provides
@@ -11,13 +10,12 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
 
-
 @Module
 @InstallIn(SingletonComponent::class)
-object AppModule{
+object DatabaseModule{
     @Singleton
     @Provides
-    fun provideAudiobookDatabase(@ApplicationContext context: Context) : AudiobookDatabase{
+    fun provideAudiobookDatabase(@ApplicationContext context: Context) : AudiobookDatabase {
         return Room.databaseBuilder(context, AudiobookDatabase::class.java,"audiobooks").build()
     }
 

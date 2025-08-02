@@ -18,7 +18,7 @@ data class Audiobook(
     val title:String,
     val author:String,
     val filePath:String,
-    val duration: Long, //in millis
+    val duration: List<Long>, //in millis
     val currentPosition: Pair<Int,Long> = Pair(0,0),//chapter and progress in chapter
     val isCompleted: Boolean=false,
     val coverImageUrl:String? = null,
