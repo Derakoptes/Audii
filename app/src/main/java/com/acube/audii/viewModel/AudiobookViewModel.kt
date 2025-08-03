@@ -4,20 +4,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.model.repository.AudiobookRepository
-import jakarta.inject.Inject
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 data class AudiobookListUiState(
-    val audiobooks: List<Audiobook> = emptyList(),
+    val audiobooks: Flow<List<Audiobook>> = MutableStateFlow(emptyList()),
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 )
 
+@HiltViewModel
 class AudiobookViewModel @Inject constructor(
     private val repository: AudiobookRepository
 ) : ViewModel(){
@@ -32,16 +34,14 @@ class AudiobookViewModel @Inject constructor(
     private fun loadAudioBooks(){
         _audioBookUiState.value = _audioBookUiState.value.copy(isLoading = true)
 
-        repository.getAllAudiobooks().map {
-            _audioBookUiState.value = _audioBookUiState.value.copy(
-                audiobooks = it,
-                isLoading = false,
-                errorMessage = null
-            )
-        }
+        _audioBookUiState.value= _audioBookUiState.value.copy(
+            audiobooks = repository.getAllAudiobooks(),
+            isLoading = false,
+            errorMessage = null
+        )
     }
     @OptIn(ExperimentalUuidApi::class)
-    fun addAudiobook(title:String, author:String, filePath: String, duration:List<Long>,coverImageUrl:String=""){
+    fun addAudiobook(title:String, author:String, filePath: String, duration:List<Long>, coverImageUriPath:String=""){
         viewModelScope.launch {
             try{
                 repository.addAudiobook(
@@ -52,8 +52,7 @@ class AudiobookViewModel @Inject constructor(
                         filePath = filePath,
                         duration = duration,
                         currentPosition = Pair(0, 0L),
-                        isCompleted = false,
-                        coverImageUrl = coverImageUrl,
+                        coverImageUriPath = coverImageUriPath,
                         modifiedDate = System.currentTimeMillis()
                     )
                 )

@@ -2,13 +2,14 @@ package com.acube.audii.model.database
 
 import androidx.room.Dao
 import androidx.room.Database
-import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverter
+import androidx.room.TypeConverters
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
@@ -20,11 +21,30 @@ data class Audiobook(
     val filePath:String,
     val duration: List<Long>, //in millis
     val currentPosition: Pair<Int,Long> = Pair(0,0),//chapter and progress in chapter
-    val isCompleted: Boolean=false,
-    val coverImageUrl:String? = null,
+    val coverImageUriPath:String? = null,
     val modifiedDate : Long = System.currentTimeMillis()//time since epoch
 )
 
+class Converters{
+    @TypeConverter
+    fun listOfLongToString(list: List<Long>):String{
+        return list.joinToString(",")
+    }
+    @TypeConverter
+    fun stringToListOfLong(string: String):List<Long>{
+        return string.split(",").map { it.toLong() }
+    }
+
+    @TypeConverter
+    fun pairOfIntLongToString(pair: Pair<Int,Long>):String{
+        return "${pair.first},${pair.second}"
+    }
+    @TypeConverter
+    fun stringToPairOfIntLong(string: String):Pair<Int,Long>{
+        val (first,second) = string.split(",")
+        return Pair(first.toInt(),second.toLong())
+    }
+}
 @Dao
 interface AudiobookDao{
     @Query("SELECT * FROM audiobooks ORDER BY modifiedDate DESC")
@@ -39,14 +59,16 @@ interface AudiobookDao{
     @Update
     suspend fun updateAudiobook(audiobook: Audiobook)
 
-    @Delete
+    @Query("DELETE FROM audiobooks WHERE id = :id")
     suspend fun deleteAudiobook(id: String)
 
     @Query("UPDATE audiobooks SET currentPosition = :currentPosition WHERE id = :id")
     suspend fun updatePlaybackPosition(id: String, currentPosition: Pair<Int,Long>)
 }
 
-@Database(entities = [Audiobook::class], version = 1)
+//TODO:look into exporting the schema
+@Database(entities = [Audiobook::class], exportSchema = false,version = 1)
+@TypeConverters(Converters::class)
 abstract class AudiobookDatabase : RoomDatabase(){
     abstract fun audiobookDao(): AudiobookDao
 }

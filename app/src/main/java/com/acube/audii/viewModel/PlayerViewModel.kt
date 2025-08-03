@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.model.repository.AudiobookRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,7 +19,7 @@ data class PlayerUiState(
     val errorMessage: String? = null
 )
 
-
+@HiltViewModel
 class PlayerViewModel @Inject constructor(
     private val repository: AudiobookRepository,
     savedStateHandle: SavedStateHandle

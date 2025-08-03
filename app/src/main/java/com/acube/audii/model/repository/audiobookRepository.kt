@@ -2,7 +2,7 @@ package com.acube.audii.model.repository
 
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.model.database.AudiobookDao
-import jakarta.inject.Inject
+import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 
 interface AudiobookRepository {
@@ -14,7 +14,7 @@ interface AudiobookRepository {
     suspend fun updatePlaybackPosition(id: String, position: Pair<Int,Long>)
 }
 
-class AudiobookImpl @Inject constructor(
+class AudiobookRepositoryImpl @Inject constructor(
     private val audiobookDao: AudiobookDao
 ): AudiobookRepository{
     override fun getAllAudiobooks(): Flow<List<Audiobook>> {
