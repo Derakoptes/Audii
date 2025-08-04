@@ -1,20 +1,25 @@
 package com.acube.audii.viewModel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.acube.audii.model.AudiobookData
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.model.repository.AudiobookRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 data class AudiobookListUiState(
-    val audiobooks: Flow<List<Audiobook>> = MutableStateFlow(emptyList()),
+    val audiobooks: StateFlow<List<Audiobook>> = MutableStateFlow(emptyList()),
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 )
@@ -35,13 +40,17 @@ class AudiobookViewModel @Inject constructor(
         _audioBookUiState.value = _audioBookUiState.value.copy(isLoading = true)
 
         _audioBookUiState.value= _audioBookUiState.value.copy(
-            audiobooks = repository.getAllAudiobooks(),
+            audiobooks = repository.getAllAudiobooks().stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5_000),
+                emptyList()
+            ),
             isLoading = false,
             errorMessage = null
         )
     }
     @OptIn(ExperimentalUuidApi::class)
-    fun addAudiobook(title:String, author:String, filePath: String, duration:List<Long>, coverImageUriPath:String=""){
+    fun addAudiobook(title:String, author:String, narrator: String, filePath: String, duration:List<Long>, coverImageUriPath:String=""){
         viewModelScope.launch {
             try{
                 repository.addAudiobook(
@@ -53,7 +62,33 @@ class AudiobookViewModel @Inject constructor(
                         duration = duration,
                         currentPosition = Pair(0, 0L),
                         coverImageUriPath = coverImageUriPath,
-                        modifiedDate = System.currentTimeMillis()
+                        modifiedDate = System.currentTimeMillis(),
+                        narrator = narrator
+                    )
+                )
+            }catch (e: Exception){
+                _audioBookUiState.value = _audioBookUiState.value.copy(
+                    errorMessage = "Failed to add audiobook : ${e.message}"
+                )
+            }
+        }
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    fun addAudiobook(audiobookData: AudiobookData) {
+        viewModelScope.launch {
+            try{
+                repository.addAudiobook(
+                    Audiobook(
+                        id = Uuid.random().toHexString(),
+                        title = audiobookData.title,
+                        author = audiobookData.author,
+                        filePath = audiobookData.filePath,
+                        duration = audiobookData.duration,
+                        currentPosition = Pair(0, 0L),
+                        coverImageUriPath = audiobookData.imageUri ?: "",
+                        modifiedDate = System.currentTimeMillis(),
+                        narrator = audiobookData.narrator
                     )
                 )
             }catch (e: Exception){

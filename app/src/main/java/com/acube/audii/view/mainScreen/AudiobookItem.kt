@@ -1,6 +1,7 @@
-package com.acube.audii.view
+package com.acube.audii.view.mainScreen
 
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,9 +21,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,11 +34,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.acube.audii.model.database.Audiobook
+import com.acube.audii.model.getImageFromPath
 import java.lang.System.currentTimeMillis
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -52,7 +58,8 @@ fun PreviewAudiobookListItem() {
                  duration = listOf(120000L, 150000L, 180000L), // Example durations for chapters
                  currentPosition = Pair(0, 120000),
                  coverImageUriPath = null,
-                 modifiedDate = currentTimeMillis()
+                 modifiedDate = currentTimeMillis(),
+                 narrator = "Sample Narrator"
              )
          )
      }
@@ -62,7 +69,7 @@ fun PreviewAudiobookListItem() {
 fun AudiobookListItem(
     audiobook: Audiobook,
     modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
 ) {
     Card(
         modifier = modifier
@@ -81,15 +88,16 @@ fun AudiobookListItem(
         Row(
             modifier = Modifier
                 .padding(12.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                .fillMaxWidth(0.95f),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top
         ) {
             // Cover Image Section
             AudiobookCover(
                 coverImagePath = audiobook.coverImageUriPath,
                 title = audiobook.title,
                 isCompleted = isCompleted(audiobook),
-                modifier = Modifier.size(64.dp)
+                modifier = Modifier.size(70.dp)
             )
 
             // Content Section
@@ -137,10 +145,8 @@ private fun AudiobookCover(
     isCompleted: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val image = coverImagePath?.let { getImageFromPath(coverImagePath) }
     Box(modifier = modifier) {
-        if (coverImagePath != null) {
-        //TODO:setup this
-        } else {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -148,13 +154,20 @@ private fun AudiobookCover(
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "No cover",
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+                if(coverImagePath!=null&&image!=null){
+                    Image(
+                        bitmap = image.asImageBitmap(),
+                        contentDescription = "$title cover",
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }else {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = "No cover",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
         }
 
         // Completion badge
@@ -195,11 +208,15 @@ private fun ProgressSection(audiobook: Audiobook) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "Ch. ${currentChapterIndex + 1}/$totalChapters",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        if (!(currentChapterIndex==0 && totalChapters==1)){
+            Text(
+                text = "Ch. ${currentChapterIndex + 1}/$totalChapters",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }else{
+            Spacer(modifier = Modifier)
+        }
 
         Text(
             text = "${progressInfo.overallProgress}%",

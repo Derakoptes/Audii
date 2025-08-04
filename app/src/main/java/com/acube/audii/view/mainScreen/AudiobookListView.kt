@@ -22,6 +22,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -44,8 +45,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.ui.theme.AudiiTheme
-import com.acube.audii.view.AudiobookListItem
+import com.acube.audii.view.mainScreen.AudiobookListItem
+import com.acube.audii.viewModel.ProcessorUiState
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 
 
@@ -58,7 +62,8 @@ private val sampleAudiobooks = listOf(
         duration = listOf(3600000L, 3900000L, 4200000L),
         currentPosition = Pair(1, 1800000L),
         coverImageUriPath = null,
-        modifiedDate = System.currentTimeMillis() - 86400000L
+        modifiedDate = System.currentTimeMillis() - 86400000L,
+        narrator = "John Doe"
     ),
     Audiobook(
         id = "2",
@@ -68,7 +73,9 @@ private val sampleAudiobooks = listOf(
         duration = listOf(5400000L, 6000000L, 5700000L, 6300000L),
         currentPosition = Pair(3, 4500000L),
         coverImageUriPath = "https://example.com/dune-cover.jpg",
-        modifiedDate = System.currentTimeMillis() - 172800000L
+        modifiedDate = System.currentTimeMillis() - 172800000L,
+        narrator = "John Doe"
+
     ),
     Audiobook(
         id = "3",
@@ -78,7 +85,8 @@ private val sampleAudiobooks = listOf(
         duration = listOf(4200000L, 3900000L, 4500000L),
         currentPosition = Pair(2, 4500000L),
         coverImageUriPath = null,
-        modifiedDate = System.currentTimeMillis() - 259200000L
+        modifiedDate = System.currentTimeMillis() - 259200000L,
+        narrator = "John Doe"
     ),
     Audiobook(
         id = "4",
@@ -88,7 +96,8 @@ private val sampleAudiobooks = listOf(
         duration = listOf(3300000L, 3600000L, 3900000L, 3300000L),
         currentPosition = Pair(0, 0L), // Not started
         coverImageUriPath = "https://example.com/martian-cover.jpg",
-        modifiedDate = System.currentTimeMillis() - 345600000L
+        modifiedDate = System.currentTimeMillis() - 345600000L,
+        narrator = "John Doe"
     ),
     Audiobook(
         id = "5",
@@ -98,7 +107,9 @@ private val sampleAudiobooks = listOf(
         duration = listOf(2700000L, 3000000L, 2400000L, 3300000L, 2700000L), // 5 chapters
         currentPosition = Pair(2, 1200000L), // Chapter 3, 20 minutes in
         coverImageUriPath = null,
-        modifiedDate = System.currentTimeMillis() - 432000000L // 5 days ago
+        modifiedDate = System.currentTimeMillis() - 432000000L, // 5 days ago,
+        narrator = "John Doe"
+
     )
 )
 
@@ -107,7 +118,9 @@ private val sampleAudiobooks = listOf(
 private fun AudiobookListScreenPreview() {
     AudiiTheme {
         AudiobookListScreen(
-            audiobooks = flowOf(sampleAudiobooks)
+            audiobooks = MutableStateFlow(sampleAudiobooks) as StateFlow<List<Audiobook>>,
+            isAddingAudiobook = MutableStateFlow(ProcessorUiState.Idle)
+
         )
     }
 }
@@ -117,7 +130,8 @@ private fun AudiobookListScreenPreview() {
 private fun AudiobookListScreenEmptyPreview() {
     AudiiTheme {
         AudiobookListScreen(
-            audiobooks = flowOf(emptyList())
+            audiobooks = MutableStateFlow(emptyList()),
+            isAddingAudiobook = MutableStateFlow(ProcessorUiState.Idle)
         )
     }
 }
@@ -127,20 +141,33 @@ private fun AudiobookListScreenEmptyPreview() {
 private fun AudiobookListScreenSingleItemPreview() {
     AudiiTheme {
         AudiobookListScreen(
-            audiobooks = flowOf(listOf(sampleAudiobooks.first()))
+            audiobooks = MutableStateFlow(listOf(sampleAudiobooks.first())),
+            isAddingAudiobook = MutableStateFlow(ProcessorUiState.Idle)
         )
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+private fun AudiobookListScreenWithLoadingPreview() {
+    AudiiTheme {
+        AudiobookListScreen(
+            audiobooks = MutableStateFlow(sampleAudiobooks),
+            isAddingAudiobook = MutableStateFlow(ProcessorUiState.Loading)
+        )
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AudiobookListScreen(
-    audiobooks: Flow<List<Audiobook>>,
+    audiobooks: StateFlow<List<Audiobook>>,
     onAudiobookClick: (String) -> Unit = {},
     onAddAudiobook: () -> Unit = {},
+    isAddingAudiobook: StateFlow<ProcessorUiState>
 ) {
     val audiobookList by audiobooks.collectAsState(initial = emptyList())
+    val isAdding by isAddingAudiobook.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
 
@@ -189,29 +216,40 @@ fun AudiobookListScreen(
             }
         }
     ) { paddingValues ->
-        Box(
+        Column( // Use Column to stack content vertically
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            when {
-                audiobookList.isEmpty() -> {
-                    EmptyStateContent(
-                        onAddAudiobook = onAddAudiobook,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-                filteredAudiobooks.isEmpty() && searchQuery.isNotBlank() -> {
-                    NoSearchResultsContent(
-                        searchQuery = searchQuery,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-                else -> {
-                    AudiobookList(
-                        audiobooks = filteredAudiobooks,
-                        onAudiobookClick = onAudiobookClick
-                    )
+            if (isAdding==ProcessorUiState.Loading) {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            Box( // Wrap the existing content in a Box or similar if needed for alignment
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                when {
+                    audiobookList.isEmpty() -> {
+                        EmptyStateContent(
+                            onAddAudiobook = onAddAudiobook,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                    filteredAudiobooks.isEmpty() && searchQuery.isNotBlank() -> {
+                        NoSearchResultsContent(
+                            searchQuery = searchQuery,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                    else -> {
+                        AudiobookList(
+                            audiobooks = filteredAudiobooks,
+                            onAudiobookClick = onAudiobookClick
+                        )
+                    }
                 }
             }
         }
@@ -322,7 +360,9 @@ private fun AudiobookList(
     ) {
         // Recently played section
         val recentlyPlayed = audiobooks
-            .filter { it.currentPosition.first > 0 || it.currentPosition.second > 0 }
+            .filter {
+                (it.currentPosition.first > 0 || it.currentPosition.second > 0)
+            }
             .sortedByDescending { it.modifiedDate }
             .take(2)
 
@@ -333,7 +373,7 @@ private fun AudiobookList(
             items(recentlyPlayed) { audiobook ->
                 AudiobookListItem(
                     audiobook = audiobook,
-                    onClick = { onAudiobookClick(audiobook.id) }
+                    onClick = { onAudiobookClick(audiobook.id) },
                 )
             }
             item {
@@ -352,7 +392,7 @@ private fun AudiobookList(
             items(remainingAudiobooks.sortedBy { it.title }) { audiobook ->
                 AudiobookListItem(
                     audiobook = audiobook,
-                    onClick = { onAudiobookClick(audiobook.id) }
+                    onClick = { onAudiobookClick(audiobook.id) },
                 )
             }
         }

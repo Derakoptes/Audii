@@ -18,6 +18,7 @@ data class Audiobook(
     @PrimaryKey val id: String,
     val title:String,
     val author:String,
+    val narrator:String,
     val filePath:String,
     val duration: List<Long>, //in millis
     val currentPosition: Pair<Int,Long> = Pair(0,0),//chapter and progress in chapter
