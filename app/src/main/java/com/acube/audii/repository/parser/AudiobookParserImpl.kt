@@ -8,7 +8,6 @@ import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.acube.audii.model.AudiobookData
 import com.acube.audii.model.parser.AudiobookParser
-import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.util.Date
 import javax.inject.Inject
@@ -88,7 +87,7 @@ class AudiobookParserImpl @Inject constructor(): AudiobookParser {
             title = title,
             author = author,
             narrator = narrator,
-            filePath = uri.toString(),
+            uriString = uri.toString(),
             duration = durations,
             imageUri = imagePath,
         )

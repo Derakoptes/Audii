@@ -47,10 +47,8 @@ import com.acube.audii.model.database.Audiobook
 import com.acube.audii.ui.theme.AudiiTheme
 import com.acube.audii.view.mainScreen.AudiobookListItem
 import com.acube.audii.viewModel.ProcessorUiState
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flowOf
 
 
 private val sampleAudiobooks = listOf(
@@ -58,7 +56,7 @@ private val sampleAudiobooks = listOf(
         id = "1",
         title = "The Hobbit",
         author = "J.R.R. Tolkien",
-        filePath = "/path/to/hobbit.mp3",
+        uriString = "/path/to/hobbit.mp3",
         duration = listOf(3600000L, 3900000L, 4200000L),
         currentPosition = Pair(1, 1800000L),
         coverImageUriPath = null,
@@ -69,7 +67,7 @@ private val sampleAudiobooks = listOf(
         id = "2",
         title = "Dune",
         author = "Frank Herbert",
-        filePath = "/path/to/dune.mp3",
+        uriString = "/path/to/dune.mp3",
         duration = listOf(5400000L, 6000000L, 5700000L, 6300000L),
         currentPosition = Pair(3, 4500000L),
         coverImageUriPath = "https://example.com/dune-cover.jpg",
@@ -81,7 +79,7 @@ private val sampleAudiobooks = listOf(
         id = "3",
         title = "1984",
         author = "George Orwell",
-        filePath = "/path/to/1984.mp3",
+        uriString = "/path/to/1984.mp3",
         duration = listOf(4200000L, 3900000L, 4500000L),
         currentPosition = Pair(2, 4500000L),
         coverImageUriPath = null,
@@ -92,7 +90,7 @@ private val sampleAudiobooks = listOf(
         id = "4",
         title = "The Martian",
         author = "Andy Weir",
-        filePath = "/path/to/martian.mp3",
+        uriString = "/path/to/martian.mp3",
         duration = listOf(3300000L, 3600000L, 3900000L, 3300000L),
         currentPosition = Pair(0, 0L), // Not started
         coverImageUriPath = "https://example.com/martian-cover.jpg",
@@ -103,7 +101,7 @@ private val sampleAudiobooks = listOf(
         id = "5",
         title = "Atomic Habits",
         author = "James Clear",
-        filePath = "/path/to/atomic-habits.mp3",
+        uriString = "/path/to/atomic-habits.mp3",
         duration = listOf(2700000L, 3000000L, 2400000L, 3300000L, 2700000L), // 5 chapters
         currentPosition = Pair(2, 1200000L), // Chapter 3, 20 minutes in
         coverImageUriPath = null,

@@ -1,6 +1,5 @@
 package com.acube.audii.model
 
-import com.acube.audii.model.database.Audiobook
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import java.io.ByteArrayOutputStream
@@ -10,7 +9,7 @@ data class AudiobookData(
     val title:String,
     val author:String,
     val narrator:String,
-    val filePath:String,
+    val uriString:String,
     val duration: List<Long>,
     val imageUri:String?
 )

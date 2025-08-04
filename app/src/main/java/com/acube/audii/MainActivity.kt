@@ -47,15 +47,24 @@ class MainActivity : ComponentActivity() {
         withContext(Dispatchers.IO) {
             val uri = audiobookPicker.getFileData(folder = false)
             uri?.let {
-                val audiobookData = processorViewModel.processSingleFile(it)
-                withContext(Dispatchers.IO) {
-                    audiobookViewModel.addAudiobook(audiobookData)
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Added audiobook: ${audiobookData.title}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    Log.d("MainActivity", "Successfully added audiobook: ${audiobookData.title} by ${audiobookData.author}")
+                if (!audiobookViewModel.checkIfAudiobookExists(uri.toString())){
+                    val audiobookData = processorViewModel.processSingleFile(it)
+                    withContext(Dispatchers.IO) {
+                        audiobookViewModel.addAudiobook(audiobookData)
+                        withContext(Dispatchers.Main) {
+                            showToast(
+                                "Added audiobook: ${audiobookData.title}",
+                                Toast.LENGTH_SHORT
+                            )
+                        }
+                    }
+                }else{
+                    withContext(Dispatchers.Main) {
+                        showToast(
+                            "Audiobook already exists",
+                            Toast.LENGTH_SHORT
+                        )
+                    }
                 }
             }
         }
@@ -65,15 +74,24 @@ class MainActivity : ComponentActivity() {
         withContext(Dispatchers.IO) {
             val uri = audiobookPicker.getFileData(folder = true)
             uri?.let {
-                val audiobookData = processorViewModel.processFolderForSingleAudiobook(it)
-                withContext(Dispatchers.IO) {
-                    audiobookViewModel.addAudiobook(audiobookData)
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Added audiobook from folder: ${audiobookData.title}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    Log.d("MainActivity", "Successfully added audiobook from folder: ${audiobookData.title} by ${audiobookData.author}")
+                if (!audiobookViewModel.checkIfAudiobookExists(uri.toString())) {
+                    val audiobookData = processorViewModel.processFolderForSingleAudiobook(it)
+                    withContext(Dispatchers.IO) {
+                        audiobookViewModel.addAudiobook(audiobookData)
+                        withContext(Dispatchers.Main) {
+                            showToast(
+                                "Added audiobook: ${audiobookData.title}",
+                                Toast.LENGTH_SHORT
+                            )
+                        }
+                    }
+                }else{
+                    withContext(Dispatchers.Main) {
+                        showToast(
+                            "Audiobook already exists",
+                            Toast.LENGTH_SHORT
+                        )
+                    }
                 }
             }
         }
@@ -83,24 +101,38 @@ class MainActivity : ComponentActivity() {
         withContext(Dispatchers.IO) {
             val uri = audiobookPicker.getFileData(folder = true)
             uri?.let {
-                val audiobooksData = processorViewModel.processFolderForMultipleAudiobooks(it)
-                withContext(Dispatchers.IO) {
-                    audiobooksData.forEach { data ->
-                        audiobookViewModel.addAudiobook(data)
+                if (!audiobookViewModel.checkIfAudiobookExists(uri.toString())){
+                    val audiobooksData = processorViewModel.processFolderForMultipleAudiobooks(it)
+                    withContext(Dispatchers.IO) {
+                        audiobooksData.forEach { data ->
+                            audiobookViewModel.addAudiobook(data)
+                        }
+                        withContext(Dispatchers.Main) {
+                            showToast(
+                                "Added ${audiobooksData.size} audiobooks from folder",
+                                Toast.LENGTH_SHORT
+                            )
+                        }
                     }
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Added ${audiobooksData.size} audiobooks from folder",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    Log.d("MainActivity", "Successfully added ${audiobooksData.size} audiobooks from folder")
+                }else{
+                    withContext(Dispatchers.Main) {
+                        showToast(
+                            "Audiobook already exists",
+                            Toast.LENGTH_SHORT
+                        )
+                    }
                 }
             }
         }
     }
-
+    private suspend fun showToast(message:String,length:Int){
+        Toast.makeText(
+            this@MainActivity,
+            message,
+            length
+        ).show()
+    }
     private fun handleAddAudiobook() {
-        println("adding audiobook")
         lifecycleScope.launch {
             pickSingleFile()
         }

@@ -1,13 +1,11 @@
 package com.acube.audii.viewModel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.acube.audii.model.AudiobookData
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.model.repository.AudiobookRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,6 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
+import androidx.core.net.toUri
 
 data class AudiobookListUiState(
     val audiobooks: StateFlow<List<Audiobook>> = MutableStateFlow(emptyList()),
@@ -27,7 +26,7 @@ data class AudiobookListUiState(
 @HiltViewModel
 class AudiobookViewModel @Inject constructor(
     private val repository: AudiobookRepository
-) : ViewModel(){
+) : ViewModel() {
 
     private val _audioBookUiState = MutableStateFlow(AudiobookListUiState())
     val audioBookUiState = _audioBookUiState.asStateFlow()
@@ -36,10 +35,10 @@ class AudiobookViewModel @Inject constructor(
         loadAudioBooks()
     }
 
-    private fun loadAudioBooks(){
+    private fun loadAudioBooks() {
         _audioBookUiState.value = _audioBookUiState.value.copy(isLoading = true)
 
-        _audioBookUiState.value= _audioBookUiState.value.copy(
+        _audioBookUiState.value = _audioBookUiState.value.copy(
             audiobooks = repository.getAllAudiobooks().stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(5_000),
@@ -49,41 +48,17 @@ class AudiobookViewModel @Inject constructor(
             errorMessage = null
         )
     }
-    @OptIn(ExperimentalUuidApi::class)
-    fun addAudiobook(title:String, author:String, narrator: String, filePath: String, duration:List<Long>, coverImageUriPath:String=""){
-        viewModelScope.launch {
-            try{
-                repository.addAudiobook(
-                    Audiobook(
-                        id = Uuid.random().toHexString(),
-                        title = title,
-                        author = author,
-                        filePath = filePath,
-                        duration = duration,
-                        currentPosition = Pair(0, 0L),
-                        coverImageUriPath = coverImageUriPath,
-                        modifiedDate = System.currentTimeMillis(),
-                        narrator = narrator
-                    )
-                )
-            }catch (e: Exception){
-                _audioBookUiState.value = _audioBookUiState.value.copy(
-                    errorMessage = "Failed to add audiobook : ${e.message}"
-                )
-            }
-        }
-    }
 
     @OptIn(ExperimentalUuidApi::class)
     fun addAudiobook(audiobookData: AudiobookData) {
         viewModelScope.launch {
-            try{
+            try {
                 repository.addAudiobook(
                     Audiobook(
                         id = Uuid.random().toHexString(),
                         title = audiobookData.title,
                         author = audiobookData.author,
-                        filePath = audiobookData.filePath,
+                        uriString = audiobookData.uriString,
                         duration = audiobookData.duration,
                         currentPosition = Pair(0, 0L),
                         coverImageUriPath = audiobookData.imageUri ?: "",
@@ -91,7 +66,7 @@ class AudiobookViewModel @Inject constructor(
                         narrator = audiobookData.narrator
                     )
                 )
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 _audioBookUiState.value = _audioBookUiState.value.copy(
                     errorMessage = "Failed to add audiobook : ${e.message}"
                 )
@@ -99,8 +74,20 @@ class AudiobookViewModel @Inject constructor(
         }
     }
 
-    fun deleteAudiobook(id:String){
-        viewModelScope.launch{
+    fun checkIfAudiobookExists(uriString: String): Boolean {
+        var exists = false
+        val possibleMatches= audioBookUiState.value.audiobooks.value.filter { it.uriString.substringAfterLast("/") == uriString.substringAfterLast("/") }
+
+        possibleMatches.forEach { it->
+            if (it.uriString.toUri().equals(uriString.toUri())){
+                exists = true
+            }
+        }
+        return exists
+    }
+
+    fun deleteAudiobook(id: String) {
+        viewModelScope.launch {
             try {
                 repository.deleteAudiobook(id = id)
             } catch (e: Exception) {
@@ -111,7 +98,7 @@ class AudiobookViewModel @Inject constructor(
         }
     }
 
-    private fun clearErrorState(){
+    private fun clearErrorState() {
         _audioBookUiState.value = _audioBookUiState.value.copy(
             errorMessage = null
         )
