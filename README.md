@@ -38,15 +38,10 @@ Open the project in **Android Studio** and run on your preferred device or emula
 ---
 
 ## Roadmap
-
-* [ ] Basic playback engine
-* [ ] File picker integration
-* [ ] Persistent playback progress
-* [ ] Bookmarks and collections
-* [ ] Android Auto compatibility
-* [ ] Sleep timer
+* [ ] Basic Audiobook Playback
 * [ ] Playback speed control
-* [ ] UI/UX enhancements
+* [ ] Bookmarks and collections
+* [ ] Sleep timer
+* [ ] Android Auto compatibility
 * [ ] Cloud sync
-
 ---
