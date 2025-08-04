@@ -1,5 +1,7 @@
 package com.acube.audii.model.database
 
+import android.os.Parcel
+import android.os.Parcelable
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
@@ -24,7 +26,46 @@ data class Audiobook(
     val currentPosition: Pair<Int,Long> = Pair(0,0),//chapter and progress in chapter
     val coverImageUriPath:String? = null,
     val modifiedDate : Long = System.currentTimeMillis()//time since epoch
-)
+): Parcelable {
+    constructor(parcel: Parcel) : this(
+        parcel.readString()!!,
+        parcel.readString()!!,
+        parcel.readString()!!,
+        parcel.readString()!!,
+        parcel.readString()!!,
+        parcel.createLongArray()!!.toList(),
+        Pair(parcel.readInt(), parcel.readLong()),
+        parcel.readString(),
+        parcel.readLong()
+    )
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(id)
+        parcel.writeString(title)
+        parcel.writeString(author)
+        parcel.writeString(narrator)
+        parcel.writeString(uriString)
+        parcel.writeLongArray(duration.toLongArray())
+        parcel.writeInt(currentPosition.first)
+        parcel.writeLong(currentPosition.second)
+        parcel.writeString(coverImageUriPath)
+        parcel.writeLong(modifiedDate)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<Audiobook> {
+        override fun createFromParcel(parcel: Parcel): Audiobook {
+            return Audiobook(parcel)
+        }
+
+        override fun newArray(size: Int): Array<Audiobook?> {
+            return arrayOfNulls(size)
+        }
+    }
+}
 
 class Converters{
     @TypeConverter

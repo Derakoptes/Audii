@@ -44,4 +44,5 @@ Open the project in **Android Studio** and run on your preferred device or emula
 * [ ] Sleep timer
 * [ ] Android Auto compatibility
 * [ ] Cloud sync
+
 ---

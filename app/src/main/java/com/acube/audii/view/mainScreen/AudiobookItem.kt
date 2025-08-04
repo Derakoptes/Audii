@@ -21,9 +21,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -57,7 +59,8 @@ fun PreviewAudiobookListItem() {
                  coverImageUriPath = null,
                  modifiedDate = currentTimeMillis(),
                  narrator = "Sample Narrator"
-             )
+             ),
+             onPlayClick = {}
          )
      }
 
@@ -67,6 +70,7 @@ fun AudiobookListItem(
     audiobook: Audiobook,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
+    onPlayClick: ((String) -> Unit)? = null,
 ) {
     Card(
         modifier = modifier
@@ -87,7 +91,7 @@ fun AudiobookListItem(
                 .padding(12.dp)
                 .fillMaxWidth(0.95f),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
             // Cover Image Section
             AudiobookCover(
@@ -130,6 +134,15 @@ fun AudiobookListItem(
 
                 // Progress Bar
                 AudiobookProgressBar(audiobook = audiobook)
+            }
+            if (onPlayClick != null) {
+                IconButton(onClick = { onPlayClick(audiobook.id) }) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = "Play",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }

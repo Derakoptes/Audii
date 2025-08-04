@@ -22,43 +22,12 @@ data class PlayerUiState(
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     private val repository: AudiobookRepository,
-    savedStateHandle: SavedStateHandle
 ): ViewModel() {
-    private val audiobookId:String =savedStateHandle.get<String>("audiobookId") ?: ""
 
     private val _uiState = MutableStateFlow(PlayerUiState())
+    val uiState = _uiState
 
-    init {
-        loadAudiobook()
-    }
+    private fun playAudiobook(audiobook: Audiobook){
 
-    private fun loadAudiobook(){
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                isLoading = true
-            )
-            try {
-                val audiobook = repository.getAudiobookById(audiobookId)
-
-                if(audiobook!=null){
-                    _uiState.value = _uiState.value.copy(
-                        currentAudiobook = audiobook,
-                        currentPosition = audiobook.currentPosition,
-                        duration = audiobook.duration,
-                        isLoading = false
-                    )
-                }else{
-                    _uiState.value = _uiState.value.copy(
-                        errorMessage = "Audiobook not found",
-                        isLoading = false
-                    )
-                }
-            }catch (e: Exception){
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = "Failed to load audiobook ${e.message}"
-                )
-            }
-        }
     }
 }
