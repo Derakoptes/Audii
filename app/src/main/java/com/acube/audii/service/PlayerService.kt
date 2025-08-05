@@ -3,8 +3,10 @@ package com.acube.audii.service
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
+import android.os.Binder
+import android.os.IBinder
 import androidx.annotation.OptIn
-import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.media3.common.MediaItem
@@ -15,15 +17,22 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.acube.audii.R
 import com.acube.audii.model.database.Audiobook
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class PlayerService : MediaSessionService() {
-    @Inject
-    @ApplicationContext
-    lateinit var context: Context
 
-    private var mediaSession: MediaSession? = null
+    var mediaSession: MediaSession? = null
+    private val binder = PlayerBinder()
+
+    inner class PlayerBinder : Binder() {
+        fun getService(): PlayerService = this@PlayerService
+    }
+
+    override fun onBind(intent: Intent?): IBinder {
+        super.onBind(intent)
+        return binder
+    }
 
     companion object {
         const val ACTION_PLAY = "com.acube.audii.service.PLAY"
@@ -32,6 +41,8 @@ class PlayerService : MediaSessionService() {
         const val PREVIOUS_CHAPTER = "com.acube.audii.service.PREVIOUS_CHAPTER"
         const val PAUSE = "com.acube.audii.service.PAUSE"
         const val STOP = "com.acube.audii.service.STOP"
+        const val CONTINUE = "com.acube.audii.service.CONTINUE"
+
         private const val NOTIFICATION_ID = 123
         private const val CHANNEL_ID = "audii_channel_id"
     }
@@ -55,19 +66,22 @@ class PlayerService : MediaSessionService() {
         mediaSession
 
     override fun onStartCommand(intent: android.content.Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_PLAY) {
-            val audiobook = intent.getParcelableExtra<Audiobook>(EXTRA_AUDIOBOOK)
-            audiobook?.let {
-                playAudiobook(it, audiobook.currentPosition.first, audiobook.currentPosition.second)
+        when (intent?.action) {
+            ACTION_PLAY -> {
+                val audiobook = intent.getParcelableExtra<Audiobook>(EXTRA_AUDIOBOOK)
+                audiobook?.let {
+                    playAudiobook(it, it.currentPosition.first, it.currentPosition.second)
+                }
             }
-        } else if (intent?.action == NEXT_CHAPTER) {
-            mediaSession?.player?.seekToNextMediaItem()
-        } else if (intent?.action == PREVIOUS_CHAPTER && mediaSession?.player?.currentMediaItemIndex!! != 0) {
-            mediaSession?.player?.seekToPreviousMediaItem()
-        } else if (intent?.action == PAUSE) {
-            mediaSession?.player?.pause()
-        } else if (intent?.action == STOP) {
-            stopAudioBook()
+            NEXT_CHAPTER -> mediaSession?.player?.seekToNextMediaItem()
+            PREVIOUS_CHAPTER -> {
+                if ((mediaSession?.player?.currentMediaItemIndex ?: 0) > 0) {
+                    mediaSession?.player?.seekToPreviousMediaItem()
+                }
+            }
+            PAUSE -> mediaSession?.player?.pause()
+            STOP -> stopAudioBook()
+            CONTINUE -> mediaSession?.player?.play()
         }
         return super.onStartCommand(intent, flags, startId)
     }
@@ -86,7 +100,7 @@ class PlayerService : MediaSessionService() {
     }
 
     fun playAudiobook(audiobook: Audiobook, chapter: Int, position: Long) {
-        val doc = DocumentFile.fromSingleUri(context, audiobook.uriString.toUri())
+        val doc = DocumentFile.fromSingleUri(this,audiobook.uriString.toUri())
         if (doc?.isDirectory == true) {
             mediaSession?.player?.addMediaItems(getMediaUris(doc))
         }
