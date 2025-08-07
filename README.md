@@ -48,6 +48,8 @@ Open the project in **Android Studio** and run on your preferred device or emula
 <img width="225" height="500" alt="image" src="https://github.com/user-attachments/assets/a15b7651-3a39-4e58-bdcd-edacd70fd288" />
 <img width="225" height="500" alt="image" src="https://github.com/user-attachments/assets/4cde2b2a-a7b0-4398-923f-ea57916f92bb" />
 <img width="225" height="500" alt="image" src="https://github.com/user-attachments/assets/51da9463-8d94-4dcf-9cb9-7dca681d81a7" />
+<img width="225" height="500" alt="image" src="https://github.com/user-attachments/assets/c5e23074-f899-4f2f-af77-6c897f4afff3" />
+<img width="225" height="500" alt="image" src="https://github.com/user-attachments/assets/6b0b3d18-63b0-4e17-86ba-6b3b25cfb63e" />
 
 
 ---
