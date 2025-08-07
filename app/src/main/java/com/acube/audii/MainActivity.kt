@@ -3,7 +3,6 @@ package com.acube.audii
 import AudiobookListScreen
 import android.app.Application
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,18 +11,25 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.intl.Locale
 import androidx.lifecycle.lifecycleScope
 
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.repository.filePicker.AudiobookPicker
 import com.acube.audii.ui.theme.AudiiTheme
+import com.acube.audii.view.mainScreen.player.PlayerSheet
 import com.acube.audii.viewModel.AudiobookViewModel
+import com.acube.audii.viewModel.PlayerUiState
+import com.acube.audii.viewModel.PlayerViewModel
 import com.acube.audii.viewModel.ProcessorUiState
 import com.acube.audii.viewModel.ProcessorViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -32,6 +38,7 @@ import kotlinx.coroutines.withContext
 class MainActivity : ComponentActivity() {
     private val audiobookViewModel : AudiobookViewModel by viewModels()
     private val processorViewModel: ProcessorViewModel by viewModels()
+    private val playerViewModel: PlayerViewModel by viewModels()
 
     private lateinit var audiobookPicker: AudiobookPicker
 
@@ -155,6 +162,21 @@ class MainActivity : ComponentActivity() {
             pickFolderForMultipleAudiobooks()
         }
     }
+
+    private fun formatTime(millis: Long): String {
+        val absMillis = if (millis < 0) -millis else millis
+        val hours = TimeUnit.MILLISECONDS.toHours(absMillis)
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(absMillis) -
+                TimeUnit.HOURS.toMinutes(hours)
+        val seconds = TimeUnit.MILLISECONDS.toSeconds(absMillis) -
+                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(absMillis))
+
+        return if (hours > 0) {
+            String.format(Locale.current.platformLocale, "%s%02d:%02d:%02d", if (millis < 0) "-" else "", hours, minutes, seconds)
+        } else {
+            String.format(Locale.current.platformLocale, "%s%02d:%02d", if (millis < 0) "-" else "", minutes, seconds)
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -163,14 +185,44 @@ class MainActivity : ComponentActivity() {
 
         val audiobooks: StateFlow<List<Audiobook>> = audiobookViewModel.audioBookUiState.value.audiobooks
         val loadingUiState: StateFlow<ProcessorUiState> = processorViewModel.uiState
+        val playerUiState: StateFlow<PlayerUiState> = playerViewModel.uiState
+
         setContent {
             AudiiTheme {
                 val processorUiState by processorViewModel.uiState.collectAsState()
-                AudiobookListScreen(
-                    audiobooks = audiobooks,
-                    onAddAudiobook = { handleAddAudiobook() },
-                    isAddingAudiobook = loadingUiState
-                )
+                val playerUiState by playerViewModel.uiState.collectAsState()
+                var showPlayerSheet by remember { mutableStateOf(false) }
+                
+                if (showPlayerSheet && playerUiState.currentAudiobook != null) {
+                    PlayerSheet(
+                        playerState = playerUiState,
+                        onPlayPause = { },
+                        onSkipNext = { },
+                        onSkipPrevious = { },
+                        onSkipForward = {  },
+                        onSkipBackward = {  },
+                        onSeekTo = { position ->  },
+                        onClose = { showPlayerSheet = false },
+                        formatTime = { millis -> formatTime(millis) }
+                    )
+                } else {
+                    AudiobookListScreen(
+                        audiobooks = audiobooks,
+                        onAudiobookClick = { audiobookId ->
+                            lifecycleScope.launch {
+                                val audiobook = audiobooks.value.find { it.id == audiobookId }
+                                audiobook?.let { playerViewModel.playAudiobook(it) }
+                            }
+                        },
+                        onAddAudiobook = { handleAddAudiobook() },
+                        isAddingAudiobook = loadingUiState,
+                        playerState = playerViewModel.uiState,
+                        onPlayerPlayPause = {  },
+                        onPlayerSkipNext = {  },
+                        onPlayerSkipPrevious = {  },
+                        onPlayerClick = { showPlayerSheet = true }
+                    )
+                }
             }
         }
     }

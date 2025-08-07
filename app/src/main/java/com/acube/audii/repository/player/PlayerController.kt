@@ -1,0 +1,162 @@
+package com.acube.audii.repository.player
+
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.media.MediaMetadataRetriever
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
+import androidx.documentfile.provider.DocumentFile
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
+import com.acube.audii.model.database.Audiobook
+import com.acube.audii.service.PlayerService
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class PlayerController @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
+    private lateinit var mediaControllerFuture: ListenableFuture<MediaController>
+    private var mediaController: MediaController? = null
+    private val retriever by lazy { MediaMetadataRetriever() }
+
+    private val scope = CoroutineScope(Dispatchers.Main + Job())
+
+    private val _currentAudiobook = MutableStateFlow<Audiobook?>(null)
+    val currentAudiobook: StateFlow<Audiobook?> = _currentAudiobook.asStateFlow()
+
+    private val _currentPosition: MutableStateFlow<Long> = MutableStateFlow(0L)
+    val currentPosition = _currentPosition.asStateFlow()
+
+    private val _retrievedDurations: MutableStateFlow<List<Long>> = MutableStateFlow(emptyList())
+
+    private val _currentDuration: MutableStateFlow<Long> = MutableStateFlow(0L)
+    val currentDuration = _currentDuration.asStateFlow()
+
+    private val _currentChapter: MutableStateFlow<Int> = MutableStateFlow(0)
+    val currentChapter = _currentChapter.asStateFlow()
+
+    private val _totalChapters: MutableStateFlow<Int> = MutableStateFlow(0)
+    val totalChapters = _totalChapters.asStateFlow()
+
+    private val _isLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
+    private val _isPlaying: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isPlaying = _isPlaying.asStateFlow()
+
+    private val _playbackSpeed: MutableStateFlow<Float> = MutableStateFlow(1.0f)
+    val playbackSpeed = _playbackSpeed.asStateFlow()
+
+    init {
+        setUpController()
+    }
+
+
+    private fun setUpController() {
+        val sessionToken = SessionToken(context, ComponentName(context, PlayerService::class.java))
+
+        mediaControllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
+
+        mediaControllerFuture.addListener({
+            mediaController = mediaControllerFuture.get()
+            mediaController?.addListener(playerListener)
+
+            startTracking()
+        }, MoreExecutors.directExecutor())
+    }
+
+    private val playerListener = object : Player.Listener {
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            _currentChapter.value = mediaController?.currentMediaItemIndex ?: 0
+            _totalChapters.value = mediaController?.mediaItemCount ?: 0
+            _currentDuration.value =
+                _retrievedDurations.value.getOrNull(_currentChapter.value) ?: 0L
+            /*Using this instead of the mediaController duration
+         due to getting weird values from it probable due to timing.
+         Will also need chapters later though so its fine
+            */
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            _isLoading.value = playbackState == Player.STATE_BUFFERING
+            _isPlaying.value = mediaController?.isPlaying == true
+        }
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            _isPlaying.value = isPlaying
+        }
+    }
+
+    fun playAudiobook(audiobook: Audiobook) {
+        setFallBackDuration()
+        _currentAudiobook.value = audiobook
+        val intent = Intent(context, PlayerService::class.java).apply {
+            action = PlayerService.ACTION_PLAY
+            putExtra(PlayerService.EXTRA_AUDIOBOOK, audiobook)
+        }
+        ContextCompat.startForegroundService(context, intent)
+
+    }
+
+    private fun startTracking() {
+        mediaController?.let {
+            scope.launch {
+                while (true) {
+                    println()
+                    _currentPosition.value = it.currentPosition
+                    delay(1000)
+                }
+            }
+        }
+    }
+
+    private fun setFallBackDuration() {
+        scope.launch {
+            DocumentFile.fromSingleUri(context, _currentAudiobook.value?.uriString?.toUri()!!)
+                ?.let { it ->
+                    if (it.isDirectory) {
+                        it.listFiles()
+                            .filter { it.type?.startsWith("audio/") == true }
+                            .sortedBy { it.name }
+                            .forEach {
+                                retriever.setDataSource(context, it.uri)
+                                val duration =
+                                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                                        ?.toLong() ?: 0L
+                                _retrievedDurations.value += duration
+                            }
+                    } else {
+                        retriever.setDataSource(context, it.uri)
+                        val duration =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                                ?.toLong() ?: 0L
+                        _retrievedDurations.value += duration
+                    }
+                }
+        }
+    }
+
+    fun release() {
+        mediaController?.removeListener(playerListener)
+        MediaController.releaseFuture(mediaControllerFuture)
+        mediaController = null
+        scope.cancel()
+    }
+}

@@ -1,9 +1,8 @@
-package com.acube.audii.view.mainScreen
+package com.acube.audii.view.mainScreen.audiobookList
 
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,11 +20,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -37,63 +34,37 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.model.getImageFromPath
-import java.lang.System.currentTimeMillis
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-
-@Preview
-@Composable
-fun PreviewAudiobookListItem() {
-         AudiobookListItem(
-             audiobook = Audiobook(
-                 id = "1",
-                 title = "Sample Audiobook",
-                 author = "Sample Author",
-                 uriString = "/path/to/sample.mp3",
-                 duration = listOf(120000L, 150000L, 180000L), // Example durations for chapters
-                 currentPosition = Pair(0, 120000),
-                 coverImageUriPath = null,
-                 modifiedDate = currentTimeMillis(),
-                 narrator = "Sample Narrator"
-             ),
-             onPlayClick = {}
-         )
-     }
-
 
 @Composable
 fun AudiobookListItem(
     audiobook: Audiobook,
     modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
-    onPlayClick: ((String) -> Unit)? = null,
+    onPlayClick: (String) -> Unit
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .then(
-                if (onClick != null) {
-                    Modifier.clickable { onClick() }
-                } else Modifier
-            ),
+            ,
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        shape = RoundedCornerShape(8.dp)
-    ) {
+        shape = RoundedCornerShape(8.dp),
+        onClick = { onPlayClick(audiobook.id) },
+
+        ) {
         Row(
             modifier = Modifier
                 .padding(12.dp)
-                .fillMaxWidth(0.95f),
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Cover Image Section
             AudiobookCover(
                 coverImagePath = audiobook.coverImageUriPath,
                 title = audiobook.title,
@@ -101,14 +72,12 @@ fun AudiobookListItem(
                 modifier = Modifier.size(70.dp)
             )
 
-            // Content Section
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                // Title
                 Text(
                     text = audiobook.title,
                     style = MaterialTheme.typography.titleSmall,
@@ -118,7 +87,6 @@ fun AudiobookListItem(
                     fontWeight = FontWeight.Medium
                 )
 
-                // Author
                 Text(
                     text = "by ${audiobook.author}",
                     style = MaterialTheme.typography.bodySmall,
@@ -129,21 +97,11 @@ fun AudiobookListItem(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Progress Information
                 ProgressSection(audiobook = audiobook)
 
-                // Progress Bar
                 AudiobookProgressBar(audiobook = audiobook)
             }
-            if (onPlayClick != null) {
-                IconButton(onClick = { onPlayClick(audiobook.id) }) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = "Play",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
+
         }
     }
 }
@@ -180,7 +138,6 @@ private fun AudiobookCover(
                 }
         }
 
-        // Completion badge
         if (isCompleted) {
             Box(
                 modifier = Modifier

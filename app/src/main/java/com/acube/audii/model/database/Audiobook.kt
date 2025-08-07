@@ -25,7 +25,7 @@ data class Audiobook(
     val duration: List<Long>, //in millis
     val currentPosition: Pair<Int,Long> = Pair(0,0),//chapter and progress in chapter
     val coverImageUriPath:String? = null,
-    val modifiedDate : Long = System.currentTimeMillis()//time since epoch
+    val modifiedDate : Long = System.currentTimeMillis()//time since
 ): Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
@@ -108,7 +108,7 @@ interface AudiobookDao{
     suspend fun updatePlaybackPosition(id: String, currentPosition: Pair<Int,Long>)
 }
 
-//TODO:look into exporting the schema
+//TODO:exporting the schema
 @Database(entities = [Audiobook::class], exportSchema = false,version = 1)
 @TypeConverters(Converters::class)
 abstract class AudiobookDatabase : RoomDatabase(){
