@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/f9cfda6f-afbd-437e-97af-a28d9e893cf3" alt="Audii Icon" width="100" height="100" />
+  <img src="https://github.com/user-attachments/assets/f9cfda6f-afbd-437e-97af-a28d9e893cf3" alt="Audii Icon" width="150" height="150" />
 </p>
 
 # Audii 📚🎧
