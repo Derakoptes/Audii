@@ -74,5 +74,23 @@ class PlayerViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(errorMessage = e.message)
         }
     }
+    fun nextChapter(){
+        controller.nextChapter()
+    }
+    fun previousChapter(){
+        controller.previousChapter()
+    }
+    fun skipForward(){
+        controller.skipForward()
+    }
+    fun skipBackward(){
+        controller.skipBackward()
+    }
+    fun playPause(){
+        controller.playPause()
+    }
+    fun seekTo(time:Long){
+        controller.seekTo(time)
+    }
 
 }

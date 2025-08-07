@@ -115,11 +115,50 @@ class PlayerController @Inject constructor(
 
     }
 
+    fun nextChapter(){
+        mediaController?.seekTo(mediaController?.nextMediaItemIndex ?:0,0L)
+    }
+    fun previousChapter(){
+        if(mediaController?.currentMediaItemIndex!=0) {
+            mediaController?.seekTo((mediaController?.currentMediaItemIndex ?:1 )-1, 0L)
+        }
+    }
+    fun skipForward(){
+        val skipAmount = (_currentAudiobook.value?.skipTimings?.first ?: 10) * 1000
+        val newPosition = _currentPosition.value + skipAmount
+        if (newPosition < _currentDuration.value) {
+            mediaController?.seekTo(newPosition)
+        } else {
+            nextChapter()
+        }
+    }
+    fun skipBackward(){
+        val skipAmount = (_currentAudiobook.value?.skipTimings?.first ?: 10) * 1000
+        val newPosition = _currentPosition.value - skipAmount
+        mediaController?.seekTo(
+            if (newPosition < 0) 0L else newPosition
+        )
+    }
+
+    fun playPause() {
+        if(_isPlaying.value) {
+            mediaController?.pause()
+        }else{
+            mediaController?.play()
+        }
+    }
+    fun seekTo(time:Long){
+        if(_currentDuration.value>=time) {
+            mediaController?.seekTo(
+                time
+            )
+        }
+    }
+
     private fun startTracking() {
         mediaController?.let {
             scope.launch {
                 while (true) {
-                    println()
                     _currentPosition.value = it.currentPosition
                     delay(1000)
                 }

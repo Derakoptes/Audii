@@ -25,7 +25,9 @@ data class Audiobook(
     val duration: List<Long>, //in millis
     val currentPosition: Pair<Int,Long> = Pair(0,0),//chapter and progress in chapter
     val coverImageUriPath:String? = null,
-    val modifiedDate : Long = System.currentTimeMillis()//time since
+    val modifiedDate : Long = System.currentTimeMillis(),//time since
+    val skipTimings: Pair<Int,Int> = Pair(10,10),//forward and backward skipping timings
+    val speed: Float = 1.0f
 ): Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
@@ -36,7 +38,9 @@ data class Audiobook(
         parcel.createLongArray()!!.toList(),
         Pair(parcel.readInt(), parcel.readLong()),
         parcel.readString(),
-        parcel.readLong()
+        parcel.readLong(),
+        Pair(parcel.readInt(), parcel.readInt()),
+        parcel.readFloat()
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -50,6 +54,9 @@ data class Audiobook(
         parcel.writeLong(currentPosition.second)
         parcel.writeString(coverImageUriPath)
         parcel.writeLong(modifiedDate)
+        parcel.writeInt(skipTimings.first)
+        parcel.writeInt(skipTimings.second)
+        parcel.writeFloat(speed)
     }
 
     override fun describeContents(): Int {
@@ -85,6 +92,15 @@ class Converters{
     fun stringToPairOfIntLong(string: String):Pair<Int,Long>{
         val (first,second) = string.split(",")
         return Pair(first.toInt(),second.toLong())
+    }
+    @TypeConverter
+    fun pairOfIntToString(pair:Pair<Int,Int>):String{
+        return "${pair.first},${pair.second}"
+    }
+    @TypeConverter
+    fun stringToPairOfInt(string: String):Pair<Int,Int>{
+        val (first,second) = string.split(",")
+        return Pair(first.toInt(),second.toInt())
     }
 }
 @Dao

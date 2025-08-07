@@ -196,12 +196,12 @@ class MainActivity : ComponentActivity() {
                 if (showPlayerSheet && playerUiState.currentAudiobook != null) {
                     PlayerSheet(
                         playerState = playerUiState,
-                        onPlayPause = { },
-                        onSkipNext = { },
-                        onSkipPrevious = { },
-                        onSkipForward = {  },
-                        onSkipBackward = {  },
-                        onSeekTo = { position ->  },
+                        onPlayPause = { playerViewModel.playPause() },
+                        onSkipNext = { playerViewModel.nextChapter()},
+                        onSkipPrevious = { playerViewModel.previousChapter()},
+                        onSkipForward = {  playerViewModel.skipForward()},
+                        onSkipBackward = { playerViewModel.skipBackward() },
+                        onSeekTo = { position -> playerViewModel.seekTo(position) },
                         onClose = { showPlayerSheet = false },
                         formatTime = { millis -> formatTime(millis) }
                     )
