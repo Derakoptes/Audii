@@ -4,8 +4,7 @@ An open-source Android audiobook player focused on seamless offline playback.
 
 ![Platform](https://img.shields.io/badge/platform-Android-green)
 ![Language](https://img.shields.io/badge/language-Kotlin-blue)
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
-
+![License](https://img.shields.io/badge/license-Apache%202.0-blue)
 ---
 
 ## Features
@@ -21,7 +20,6 @@ An open-source Android audiobook player focused on seamless offline playback.
   * Kotlin
   * Room Database
   * Jetpack Components
-  * Dagger and Hilt
 
 ---
 
@@ -35,6 +33,14 @@ git clone https://github.com/derakoptes/audii.git
 
 Open the project in **Android Studio** and run on your preferred device or emulator.
 
+## ScreenShots(Ongoing)
+
+
+<img width="225" height="500" alt="image" src="https://github.com/user-attachments/assets/a15b7651-3a39-4e58-bdcd-edacd70fd288" />
+<img width="225" height="500" alt="image" src="https://github.com/user-attachments/assets/4cde2b2a-a7b0-4398-923f-ea57916f92bb" />
+<img width="225" height="500" alt="image" src="https://github.com/user-attachments/assets/51da9463-8d94-4dcf-9cb9-7dca681d81a7" />
+
+
 ---
 
 ## Roadmap
@@ -43,6 +49,5 @@ Open the project in **Android Studio** and run on your preferred device or emula
 * [ ] Bookmarks and collections
 * [ ] Sleep timer
 * [ ] Android Auto compatibility
-* [ ] Cloud sync
 
 ---
