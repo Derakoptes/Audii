@@ -2,13 +2,17 @@
   <img src="https://github.com/user-attachments/assets/f9cfda6f-afbd-437e-97af-a28d9e893cf3" alt="Audii Icon" width="150" height="150" />
 </p>
 
-# Audii 📚🎧
+<h1 align="center">Audii 📚🎧</h1>
 
-An open-source Android audiobook player focused on seamless offline playback.
+<p align="center">
+  An open-source Android audiobook player focused on seamless offline playback.
+</p>
 
-![Platform](https://img.shields.io/badge/platform-Android-green)
-![Language](https://img.shields.io/badge/language-Kotlin-blue)
-![License](https://img.shields.io/badge/license-Apache%202.0-blue)
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-Android-green" alt="Platform">
+  <img src="https://img.shields.io/badge/language-Kotlin-blue" alt="Language">
+  <img src="https://img.shields.io/badge/license-Apache%202.0-blue" alt="License">
+</p>
 ---
 
 ## Features
