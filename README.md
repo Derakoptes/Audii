@@ -56,7 +56,7 @@ Open the project in **Android Studio** and run on your preferred device or emula
 
 ## Roadmap
 * [x] Basic Audiobook Playback
-* [ ] Progress Storage
+* [X] Progress Storage
 * [ ] Playback speed control
 * [ ] Bookmarks and collections
 * [ ] Sleep timer
