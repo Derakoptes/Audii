@@ -21,6 +21,7 @@ import androidx.lifecycle.lifecycleScope
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.repository.filePicker.AudiobookPicker
 import com.acube.audii.ui.theme.AudiiTheme
+import com.acube.audii.view.mainScreen.audiobookList.AddAudiobookDialog
 import com.acube.audii.view.mainScreen.player.PlayerSheet
 import com.acube.audii.viewModel.AudiobookViewModel
 import com.acube.audii.viewModel.PlayerViewModel
@@ -52,96 +53,103 @@ class MainActivity : ComponentActivity() {
 
     private suspend fun pickSingleFile() {
         withContext(Dispatchers.IO) {
-            val uri = audiobookPicker.getFileData(folder = false)
-            uri?.let {
-                if (!audiobookViewModel.checkIfAudiobookExists(uri.toString())){
+            try {
+                val uri = audiobookPicker.getFileData(folder = false)
+                uri?.let {
                     val audiobookData = processorViewModel.processSingleFile(it)
                     withContext(Dispatchers.IO) {
                         audiobookViewModel.addAudiobook(audiobookData)
                         withContext(Dispatchers.Main) {
                             showToast(
                                 "Added audiobook: ${audiobookData.title}",
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_LONG
                             )
                         }
                     }
-                }else{
-                    withContext(Dispatchers.Main) {
-                        showToast(
-                            "Audiobook already exists",
-                            Toast.LENGTH_SHORT
-                        )
-                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    showToast("Error adding single file: ${e.message}", Toast.LENGTH_LONG)
                 }
             }
+
         }
     }
 
     private suspend fun pickFolderForSingleAudiobook() {
         withContext(Dispatchers.IO) {
-            val uri = audiobookPicker.getFileData(folder = true)
-            uri?.let {
-                if (!audiobookViewModel.checkIfAudiobookExists(uri.toString())) {
+            try {
+                val uri = audiobookPicker.getFileData(folder = true)
+                uri?.let {
                     val audiobookData = processorViewModel.processFolderForSingleAudiobook(it)
                     withContext(Dispatchers.IO) {
                         audiobookViewModel.addAudiobook(audiobookData)
                         withContext(Dispatchers.Main) {
                             showToast(
                                 "Added audiobook: ${audiobookData.title}",
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_LONG
                             )
                         }
                     }
-                }else{
-                    withContext(Dispatchers.Main) {
-                        showToast(
-                            "Audiobook already exists",
-                            Toast.LENGTH_SHORT
-                        )
-                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    showToast(
+                        "Error adding folder as single audiobook: ${e.message}",
+                        Toast.LENGTH_LONG
+                    )
                 }
             }
+
         }
     }
 
     private suspend fun pickFolderForMultipleAudiobooks() {
         withContext(Dispatchers.IO) {
-            val uri = audiobookPicker.getFileData(folder = true)
-            uri?.let {
-                if (!audiobookViewModel.checkIfAudiobookExists(uri.toString())){
+            try {
+                val uri = audiobookPicker.getFileData(folder = true)
+                uri?.let {
                     val audiobooksData = processorViewModel.processFolderForMultipleAudiobooks(it)
-                    withContext(Dispatchers.IO) {
-                        audiobooksData.forEach { data ->
-                            audiobookViewModel.addAudiobook(data)
+                    if (audiobooksData.isNotEmpty()) {
+                        withContext(Dispatchers.IO) {
+                            audiobooksData.forEach { data ->
+                                audiobookViewModel.addAudiobook(data)
+                            }
+                            withContext(Dispatchers.Main) {
+                                showToast(
+                                    "Added ${audiobooksData.size} audiobooks from folder",
+                                    Toast.LENGTH_LONG
+                                )
+                            }
                         }
+                    } else {
                         withContext(Dispatchers.Main) {
-                            showToast(
-                                "Added ${audiobooksData.size} audiobooks from folder",
-                                Toast.LENGTH_SHORT
-                            )
+                            showToast("No audiobooks found in the selected folder.", Toast.LENGTH_LONG)
                         }
-                    }
-                }else{
-                    withContext(Dispatchers.Main) {
-                        showToast(
-                            "Audiobook already exists",
-                            Toast.LENGTH_SHORT
-                        )
                     }
                 }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    showToast("Error adding multiple audiobooks from folder: ${e.message}", Toast.LENGTH_LONG)
+                }
             }
+
         }
     }
-    private suspend fun showToast(message:String,length:Int){
+    private fun showToast(message:String,length:Int){
         Toast.makeText(
             this@MainActivity,
             message,
             length
         ).show()
     }
-    private fun handleAddAudiobook() {
+    private fun handleAddAudiobook(type: ADD_TYPE) {
         lifecycleScope.launch {
-            pickSingleFile()
+            when(type){
+                ADD_TYPE.ONE_FROM_FILE -> addSingleFile()
+                ADD_TYPE.ONE_FROM_FOLDER -> addFolderAsAudiobook()
+                ADD_TYPE.MULTIPLE_FROM_FOLDER -> addMultipleAudiobooksFromFolder()
+            }
         }
     }
 
@@ -193,6 +201,7 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             AudiiTheme {
+                var showAddDialog by remember { mutableStateOf(false) }
                 LaunchedEffect(key1 = Unit) {
                     audiobookViewModel.setUpController()
                 }
@@ -225,7 +234,7 @@ class MainActivity : ComponentActivity() {
 
                             }
                         },
-                        onAddAudiobook = { handleAddAudiobook() },
+                        onAddAudiobook = { showAddDialog=true },
                         isAddingAudiobook = loadingUiState,
                         playerState = playerViewModel.uiState,
                         onPlayerPlayPause = {  playerViewModel.playPause()},
@@ -237,11 +246,21 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                 }
+                if(showAddDialog)
+                AddAudiobookDialog(
+                    onDismiss = { showAddDialog=false },
+                    onAddTypeSelected = { handleAddAudiobook(it) }
+                )
             }
         }
     }
 
 }
 
+enum class ADD_TYPE {
+    ONE_FROM_FILE,
+    ONE_FROM_FOLDER,
+    MULTIPLE_FROM_FOLDER
+}
 @HiltAndroidApp
 class MyApplication : Application()

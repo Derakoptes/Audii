@@ -42,6 +42,26 @@ git clone https://github.com/derakoptes/audii.git
 
 Open the project in **Android Studio** and run on your preferred device or emulator.
 
+---
+
+## How to Use
+
+Audii offers flexible ways to add your audiobooks:
+
+1.  **From a Single File:**
+    *   Simply select an individual audiobook file (e.g., `.mp3`, `.m4b`). The cover image will be extracted from the embedded metadata if available.
+
+2.  **From a Folder (Single Audiobook with Chapters):**
+    *   Organize chapters of a single audiobook into a dedicated folder.
+    *   **Important for proper parsing:** Name your chapter files sequentially, for example: `Chapter 1.mp3`, `Chapter 2.mp3`, etc.
+    *   Place the cover image for the audiobook directly inside this folder (e.g., `cover.jpg`). If no image is found in the folder, Audii will attempt to use the embedded image from the first chapter file.
+
+3.  **From a Folder (Multiple Audiobooks):**
+    *   You can select a folder that contains multiple audiobooks. Each audiobook can either be a single file or a subfolder structured as described in point #2.
+    *   Audii will scan the selected folder and add all valid audiobooks it finds.
+
+---
+
 ## ScreenShots(Ongoing)
 
 
@@ -57,7 +77,8 @@ Open the project in **Android Studio** and run on your preferred device or emula
 ## Roadmap
 * [x] Basic Audiobook Playback
 * [X] Progress Storage
-* [ ] Adding from different source types
+* [ ] Adding from different source types 
+* [ ] Adding from a repository of sorts, so it auto syncs
 * [ ] Playback speed control
 * [ ] Bookmarks and collections
 * [ ] Sleep timer

@@ -86,6 +86,11 @@ class AudiobookViewModel @Inject constructor(
     fun addAudiobook(audiobookData: AudiobookData) {
         viewModelScope.launch {
             try {
+                if(_audioBookUiState.value.audiobooks.value.none {
+                        it.uriString.toUri().normalizeScheme().equals(audiobookData.uriString.toUri().normalizeScheme())
+                    }){
+                    throw Exception("Audiobook: ${audiobookData.title} already exists")
+                }
                 repository.addAudiobook(
                     Audiobook(
                         id = Uuid.random().toHexString(),
@@ -105,18 +110,6 @@ class AudiobookViewModel @Inject constructor(
                 )
             }
         }
-    }
-
-    fun checkIfAudiobookExists(uriString: String): Boolean {
-        var exists = false
-        val possibleMatches= audioBookUiState.value.audiobooks.value.filter { it.uriString.substringAfterLast("/") == uriString.substringAfterLast("/") }
-
-        possibleMatches.forEach { it->
-            if (it.uriString.toUri().equals(uriString.toUri())){
-                exists = true
-            }
-        }
-        return exists
     }
 
     fun deleteAudiobook(id: String) {
