@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,7 +23,6 @@ import com.acube.audii.repository.filePicker.AudiobookPicker
 import com.acube.audii.ui.theme.AudiiTheme
 import com.acube.audii.view.mainScreen.player.PlayerSheet
 import com.acube.audii.viewModel.AudiobookViewModel
-import com.acube.audii.viewModel.PlayerUiState
 import com.acube.audii.viewModel.PlayerViewModel
 import com.acube.audii.viewModel.ProcessorUiState
 import com.acube.audii.viewModel.ProcessorViewModel
@@ -185,14 +185,20 @@ class MainActivity : ComponentActivity() {
 
         val audiobooks: StateFlow<List<Audiobook>> = audiobookViewModel.audioBookUiState.value.audiobooks
         val loadingUiState: StateFlow<ProcessorUiState> = processorViewModel.uiState
-        val playerUiState: StateFlow<PlayerUiState> = playerViewModel.uiState
 
+        fun stopAndSave(){
+            audiobookViewModel.saveAudiobookProgress()
+            playerViewModel.stopPlaying()
+            audiobookViewModel.setCurrentAudiobook("")
+        }
         setContent {
             AudiiTheme {
-                val processorUiState by processorViewModel.uiState.collectAsState()
+                LaunchedEffect(key1 = Unit) {
+                    audiobookViewModel.setUpController()
+                }
                 val playerUiState by playerViewModel.uiState.collectAsState()
                 var showPlayerSheet by remember { mutableStateOf(false) }
-                
+
                 if (showPlayerSheet && playerUiState.currentAudiobook != null) {
                     PlayerSheet(
                         playerState = playerUiState,
@@ -203,7 +209,8 @@ class MainActivity : ComponentActivity() {
                         onSkipBackward = { playerViewModel.skipBackward() },
                         onSeekTo = { position -> playerViewModel.seekTo(position) },
                         onClose = { showPlayerSheet = false },
-                        formatTime = { millis -> formatTime(millis) }
+                        formatTime = { millis -> formatTime(millis) },
+                        onChangeSpeed ={ speed->playerViewModel.changeSpeed(speed)}
                     )
                 } else {
                     AudiobookListScreen(
@@ -211,21 +218,29 @@ class MainActivity : ComponentActivity() {
                         onAudiobookClick = { audiobookId ->
                             lifecycleScope.launch {
                                 val audiobook = audiobooks.value.find { it.id == audiobookId }
-                                audiobook?.let { playerViewModel.playAudiobook(it) }
+                                audiobook?.let {
+                                    playerViewModel.playAudiobook(it)
+                                    audiobookViewModel.setCurrentAudiobook(audiobook.id)
+                                }
+
                             }
                         },
                         onAddAudiobook = { handleAddAudiobook() },
                         isAddingAudiobook = loadingUiState,
                         playerState = playerViewModel.uiState,
-                        onPlayerPlayPause = {  },
-                        onPlayerSkipNext = {  },
-                        onPlayerSkipPrevious = {  },
-                        onPlayerClick = { showPlayerSheet = true }
+                        onPlayerPlayPause = {  playerViewModel.playPause()},
+                        onPlayerSkipNext = {  playerViewModel.nextChapter()},
+                        onPlayerSkipPrevious = {  playerViewModel.previousChapter()},
+                        onPlayerClick = { showPlayerSheet = true },
+                        onSwipeDown = {
+                           stopAndSave()
+                        }
                     )
                 }
             }
         }
     }
+
 }
 
 @HiltAndroidApp

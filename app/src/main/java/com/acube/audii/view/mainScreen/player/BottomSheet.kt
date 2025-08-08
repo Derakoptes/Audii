@@ -32,13 +32,15 @@ import com.acube.audii.model.database.Audiobook
 import com.acube.audii.model.getImageFromPath
 import com.acube.audii.viewModel.PlayerUiState
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Surface
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import com.acube.audii.R
 
 @Composable
 fun BottomPlayerSheet(
@@ -47,21 +49,29 @@ fun BottomPlayerSheet(
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
     onPlayerClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSwipeDown: () -> Unit
 ) {
     if (playerState.currentAudiobook == null) return
-    println(playerState.toString())
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onPlayerClick() }
+            .pointerInput(Unit){
+                detectVerticalDragGestures {
+                    change, dragAmount ->
+                    if (dragAmount > 0) {
+                        onSwipeDown()
+                    }
+                }
+            }
         ,
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 8.dp
     ) {
         Column {
             LinearProgressIndicator(
-                progress = { 
+                progress = {
                     if (playerState.duration > 0) {
                         (playerState.currentPosition.toFloat() / playerState.duration.toFloat()).coerceIn(0f, 1f)
                     } else 0f
@@ -70,7 +80,7 @@ fun BottomPlayerSheet(
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
-            
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -99,9 +109,9 @@ fun BottomPlayerSheet(
                             }
                         }
                     }
-                    
+
                     Spacer(modifier = Modifier.width(12.dp))
-                    
+
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
@@ -113,7 +123,7 @@ fun BottomPlayerSheet(
                             overflow = TextOverflow.Ellipsis,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        
+
                         if (playerState.totalChapters > 1) {
                             Text(
                                 text = "Chapter ${playerState.currentChapter + 1} of ${playerState.totalChapters}",
@@ -124,7 +134,7 @@ fun BottomPlayerSheet(
                         }
                     }
                 }
-                
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -142,7 +152,7 @@ fun BottomPlayerSheet(
                             }
                         )
                     }
-                    
+
                     IconButton(
                         onClick = onPlayPause,
                         modifier = Modifier.size(48.dp)
@@ -158,7 +168,7 @@ fun BottomPlayerSheet(
                             }
                             true ->{
                                 Image(
-                                    painter = painterResource(id = com.acube.audii.R.drawable.pause),
+                                    painter = painterResource(id = R.drawable.pause),
                                     contentDescription = "Pause",
                                     modifier =  Modifier.size(32.dp),
                                     colorFilter = ColorFilter.tint(color= MaterialTheme.colorScheme.primary)
@@ -166,7 +176,7 @@ fun BottomPlayerSheet(
                             }
                         }
                     }
-                    
+
                     IconButton(
                         onClick = onSkipNext,
                         enabled = playerState.currentChapter < playerState.totalChapters - 1
@@ -181,6 +191,7 @@ fun BottomPlayerSheet(
                             }
                         )
                     }
+
                 }
             }
         }
@@ -201,7 +212,7 @@ private fun BottomPlayerSheetPreview() {
         coverImageUriPath = null,
         modifiedDate = System.currentTimeMillis()
     )
-    
+
     val playerState = PlayerUiState(
         currentAudiobook = sampleAudiobook,
         isPlaying = true,
@@ -213,14 +224,15 @@ private fun BottomPlayerSheetPreview() {
         isLoading = false,
         errorMessage = null
     )
-    
+
     MaterialTheme {
         BottomPlayerSheet(
             playerState = playerState,
             onPlayPause = {},
             onSkipNext = {},
             onSkipPrevious = {},
-            onPlayerClick = {}
-        )
+            onPlayerClick = {},
+            modifier = Modifier,
+        ) {}
     }
 }

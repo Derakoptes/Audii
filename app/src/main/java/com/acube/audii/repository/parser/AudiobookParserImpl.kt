@@ -42,7 +42,6 @@ class AudiobookParserImpl @Inject constructor(): AudiobookParser {
         val retriever = MediaMetadataRetriever()
         retriever.setDataSource(context, firstAudioFile.uri)
 
-        //save and get image path
         val possibleImage = if( firstAudioFile.isDirectory )documentFile.listFiles().find { it.type?.startsWith("image/") == true }?.uri else null
         val imagePath = when (documentFile.isDirectory && possibleImage != null) {
             true -> {

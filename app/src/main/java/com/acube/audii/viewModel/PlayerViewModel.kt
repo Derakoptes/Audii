@@ -5,15 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.repository.player.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import java.util.Locale
 import javax.inject.Inject
 
 data class PlayerUiState(
@@ -34,6 +28,7 @@ class PlayerViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PlayerUiState())
+
     val uiState = _uiState
 
     init {
@@ -65,6 +60,7 @@ class PlayerViewModel @Inject constructor(
                 )
             }.collect { _uiState.value = it }
         }
+
     }
 
     fun playAudiobook(audiobook: Audiobook) {
@@ -91,6 +87,21 @@ class PlayerViewModel @Inject constructor(
     }
     fun seekTo(time:Long){
         controller.seekTo(time)
+    }
+    fun changeSpeed(speed:Float){
+        controller.changeSpeed(speed)
+    }
+    fun stopPlaying(){
+        controller.stopPlaying()
+    }
+    private fun release(){
+        _uiState.value = PlayerUiState()
+        controller.release()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        release()
     }
 
 }

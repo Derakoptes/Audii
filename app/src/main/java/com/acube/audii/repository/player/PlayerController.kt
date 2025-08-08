@@ -139,7 +139,16 @@ class PlayerController @Inject constructor(
             if (newPosition < 0) 0L else newPosition
         )
     }
-
+    fun changeSpeed(speed:Float){
+        if(!(speed<0.5f || speed >3f) ){
+            mediaController?.setPlaybackSpeed(speed)
+        }
+    }
+    fun stopPlaying(){
+        mediaController?.stop()
+        mediaController?.clearMediaItems()
+        _currentAudiobook.value = null
+    }
     fun playPause() {
         if(_isPlaying.value) {
             mediaController?.pause()
@@ -193,6 +202,7 @@ class PlayerController @Inject constructor(
     }
 
     fun release() {
+        _currentAudiobook.value = null
         mediaController?.removeListener(playerListener)
         MediaController.releaseFuture(mediaControllerFuture)
         mediaController = null

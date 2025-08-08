@@ -42,6 +42,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -60,9 +61,11 @@ import androidx.compose.ui.unit.dp
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.model.getImageFromPath
 import com.acube.audii.viewModel.PlayerUiState
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.Locale
 
-@SuppressLint("UnusedBoxWithConstraintsScope","UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedBoxWithConstraintsScope","UnusedMaterial3ScaffoldPaddingParameter",
+)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerSheet(
@@ -74,13 +77,27 @@ fun PlayerSheet(
     onSkipBackward: () -> Unit,
     onSeekTo: (Long) -> Unit,
     onClose: () -> Unit,
+    onChangeSpeed: (Float) -> Unit,
     formatTime: (Long) -> String,
     modifier: Modifier = Modifier
 ) {
     if (playerState.currentAudiobook == null) return
 
     var isUserDragging by remember { mutableStateOf(false) }
-    var userSeekPosition by remember { mutableStateOf(0f) }
+    var userSeekPosition by remember { mutableFloatStateOf(0f) }
+
+    var playbackSpeed by remember { mutableFloatStateOf(playerState.playbackSpeed) }
+
+     fun changeSpeed(){
+        var newSpeed = 1f
+         newSpeed = if(playbackSpeed == 3f){
+             0.5f
+         }else{
+             playbackSpeed+0.5f
+         }
+        playbackSpeed = newSpeed
+        onChangeSpeed(newSpeed)
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -90,7 +107,6 @@ fun PlayerSheet(
             color = MaterialTheme.colorScheme.background
         ) {
             Column {
-                // Top app bar
                 TopAppBar(
                     title = {
                         Column {
@@ -122,14 +138,12 @@ fun PlayerSheet(
                     )
                 )
 
-                // Main content
                 BoxWithConstraints {
                     val isPortrait = maxHeight > maxWidth
                     val coverArtWidth= (maxWidth.value *0.7f).dp
                     val coverArtHeight= (maxHeight.value *0.6f).dp
 
                     if (isPortrait) {
-                        // Portrait layout
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -137,7 +151,6 @@ fun PlayerSheet(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            // Cover art
                             Card(
                                 modifier = Modifier.size(coverArtWidth),
                                 shape = RoundedCornerShape(16.dp),
@@ -261,7 +274,7 @@ fun PlayerSheet(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Refresh,
-                                            contentDescription = "Skip backward 10 seconds",
+                                            contentDescription = "Skip backward ${playerState.currentAudiobook.skipTimings.second} seconds",
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .graphicsLayer{scaleX = -1f},
@@ -286,41 +299,6 @@ fun PlayerSheet(
                                             }
                                         )
                                     }
-//
-//                                    Card(
-//                                        modifier = Modifier.weight(2f).widthIn(72.dp).heightIn(72.dp),
-//                                        shape = CircleShape,
-//                                        colors = CardDefaults.cardColors(
-//                                            containerColor = MaterialTheme.colorScheme.primary
-//                                        ),
-//                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-//
-//                                    ) {
-//                                        IconButton(
-//                                            onClick = onPlayPause,
-//                                            modifier = Modifier
-//                                        ) {
-//                                            when (playerState.isPlaying) {
-//                                                false -> {
-//                                                    Icon(
-//                                                        imageVector = Icons.Default.PlayArrow,
-//                                                        contentDescription = "Play",
-//                                                        modifier = Modifier,
-//                                                        tint = MaterialTheme.colorScheme.onPrimary
-//                                                    )
-//                                                }
-//                                                true ->{
-//                                                    Image(
-//                                                        painter = painterResource(id = com.acube.audii.R.drawable.pause),
-//                                                        contentDescription = "Pause",
-//                                                        modifier = Modifier,
-//                                                        colorFilter = ColorFilter.tint(color= MaterialTheme.colorScheme.onPrimary)
-//                                                    )
-//                                                }
-//                                            }
-//
-//                                        }
-//                                    }
 
                                     Button(
                                         onClick = onPlayPause,
@@ -367,14 +345,14 @@ fun PlayerSheet(
                                         )
                                     }
 
-                                    // Skip forward 30s
+                                    // Skip forward
                                     IconButton(
                                         onClick = onSkipForward,
                                         modifier = Modifier.weight(1f).widthIn(max= 32.dp)
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Refresh,
-                                            contentDescription = "Skip forward 30 seconds",
+                                            contentDescription = "Skip forward ${playerState.currentAudiobook.skipTimings.first} seconds",
                                             modifier = Modifier.fillMaxWidth(),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -466,9 +444,7 @@ fun PlayerSheet(
 
                                 Spacer(modifier = Modifier.height(32.dp))
 
-                                // Progress section
                                 Column(Modifier.fillMaxWidth()) {
-                                    // Seek bar
                                     Slider(
                                         value = if (isUserDragging) userSeekPosition else {
                                             if (playerState.duration > 0) {
@@ -528,7 +504,7 @@ fun PlayerSheet(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Refresh,
-                                                contentDescription = "Skip backward 10 seconds",
+                                                contentDescription = "Skip backward ${playerState.currentAudiobook.skipTimings.second} seconds",
                                                 modifier = Modifier
                                                     .size(32.dp)
                                                     .graphicsLayer{
@@ -600,14 +576,14 @@ fun PlayerSheet(
                                             )
                                         }
 
-                                        // Skip forward 30s
+                                        // Skip forward
                                         IconButton(
                                             onClick = onSkipForward,
                                             modifier = Modifier.size(56.dp)
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Refresh,
-                                                contentDescription = "Skip forward 30 seconds",
+                                                contentDescription = "Skip forward ${playerState.currentAudiobook.skipTimings.first} seconds",
                                                 modifier = Modifier.size(32.dp),
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -615,16 +591,9 @@ fun PlayerSheet(
                                     }
 
                                     Spacer(modifier = Modifier.height(16.dp))
-
-                                    // Playback speed indicator (if different from 1.0x)
-                                    if (playerState.playbackSpeed != 1.0f) {
-                                        Text(
-                                            text = "${playerState.playbackSpeed}x speed",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            fontWeight = FontWeight.Medium
-                                        )
-                                    }
+//                                    Button(onClick = { changeSpeed() }) {
+//                                        Text(text = "${playbackSpeed}x")
+//                                    }
                                 }
                             }
                         }
@@ -672,6 +641,7 @@ private fun PlayerSheetPreview() {
             onSkipBackward = {},
             onSeekTo = {},
             onClose = {},
+            onChangeSpeed = {},
             formatTime = { time ->
                 val totalSeconds = time / 1000
                 val minutes = totalSeconds / 60

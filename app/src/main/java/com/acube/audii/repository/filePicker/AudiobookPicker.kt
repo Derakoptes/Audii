@@ -83,8 +83,6 @@ class AudiobookPicker(
             permission
         ) == PackageManager.PERMISSION_GRANTED
     }
-
-    // This is no longer needed as the registration is handled by the Activity/Composable
     override fun registerFilePicker() {
     }
 }

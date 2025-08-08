@@ -64,7 +64,8 @@ fun AudiobookListScreen(
     onPlayerPlayPause: () -> Unit = {},
     onPlayerSkipNext: () -> Unit = {},
     onPlayerSkipPrevious: () -> Unit = {},
-    onPlayerClick: () -> Unit = {}
+    onPlayerClick: () -> Unit = {},
+    onSwipeDown: () -> Unit
 ) {
     val audiobookList by audiobooks.collectAsState(initial = emptyList())
     val isAdding by isAddingAudiobook.collectAsState()
@@ -168,7 +169,8 @@ fun AudiobookListScreen(
                     onSkipNext = onPlayerSkipNext,
                     onSkipPrevious = onPlayerSkipPrevious,
                     onPlayerClick = onPlayerClick,
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(paddingValues)
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(paddingValues),
+                    onSwipeDown=onSwipeDown
                 )
             }
         }

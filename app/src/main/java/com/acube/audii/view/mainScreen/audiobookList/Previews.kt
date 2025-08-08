@@ -79,10 +79,7 @@ private fun AudiobookListScreenPreview() {
             audiobooks = MutableStateFlow(sampleAudiobooks) as StateFlow<List<Audiobook>>,
             isAddingAudiobook = MutableStateFlow(ProcessorUiState.Idle),
             playerState = MutableStateFlow(PlayerUiState()),
-            onPlayerPlayPause = {},
-            onPlayerSkipNext = {},
-            onPlayerSkipPrevious = {},
-            onPlayerClick = {}
+            onSwipeDown = {}
         )
     }
 }
@@ -95,10 +92,7 @@ private fun AudiobookListScreenEmptyPreview() {
             audiobooks = MutableStateFlow(emptyList()),
             isAddingAudiobook = MutableStateFlow(ProcessorUiState.Idle),
             playerState = MutableStateFlow(PlayerUiState()),
-            onPlayerPlayPause = {},
-            onPlayerSkipNext = {},
-            onPlayerSkipPrevious = {},
-            onPlayerClick = {}
+            onSwipeDown = {}
         )
     }
 }
@@ -111,10 +105,8 @@ private fun AudiobookListScreenSingleItemPreview() {
             audiobooks = MutableStateFlow(listOf(sampleAudiobooks.first())),
             isAddingAudiobook = MutableStateFlow(ProcessorUiState.Idle),
             playerState = MutableStateFlow(PlayerUiState()),
-            onPlayerPlayPause = {},
-            onPlayerSkipNext = {},
-            onPlayerSkipPrevious = {},
-            onPlayerClick = {}
+            onSwipeDown = {}
+
         )
     }
 }
@@ -127,10 +119,8 @@ private fun AudiobookListScreenWithLoadingPreview() {
             audiobooks = MutableStateFlow(sampleAudiobooks),
             isAddingAudiobook = MutableStateFlow(ProcessorUiState.Loading),
             playerState = MutableStateFlow(PlayerUiState()),
-            onPlayerPlayPause = {},
-            onPlayerSkipNext = {},
-            onPlayerSkipPrevious = {},
-            onPlayerClick = {}
+            onSwipeDown = {}
+
         )
     }
 }
@@ -145,7 +135,7 @@ fun PreviewAudiobookListItem() {
             title = "Sample Audiobook",
             author = "Sample Author",
             uriString = "/path/to/sample.mp3",
-            duration = listOf(120000L, 150000L, 180000L), // Example durations for chapters
+            duration = listOf(120000L, 150000L, 180000L),
             currentPosition = Pair(0, 120000),
             coverImageUriPath = null,
             modifiedDate = currentTimeMillis(),
