@@ -30,9 +30,9 @@ jobs:
 
     - name: Build with Gradle
       env:
-        KEYSTORE_FILE_PATH: "app/release.jks"
+        KEYSTORE_FILE: "app/release.jks"
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-        KEYSTORE_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: ./gradlew assembleRelease
 
