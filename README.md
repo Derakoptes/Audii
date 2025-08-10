@@ -59,6 +59,7 @@ Audii offers flexible ways to add your audiobooks:
 3.  **From a Folder (Multiple Audiobooks):**
     *   You can select a folder that contains multiple audiobooks. Each audiobook can either be a single file or a subfolder structured as described in point #2.
     *   Audii will scan the selected folder and add all valid audiobooks it finds.
+    *   This folder will serve as a repository and will be scanned for new Audiobooks when you launch the app.
 
 ---
 
@@ -78,7 +79,7 @@ Audii offers flexible ways to add your audiobooks:
 * [x] Basic Audiobook Playback
 * [X] Progress Storage
 * [x] Adding from different source types 
-* [ ] Adding from a repository of sorts, so it auto syncs
+* [x] Adding from a repository of sorts, so it auto syncs
 * [ ] Playback speed control
 * [ ] Bookmarks and collections
 * [ ] Sleep timer

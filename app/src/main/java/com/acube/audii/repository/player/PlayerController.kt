@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.media.MediaMetadataRetriever
+import android.provider.DocumentsContract
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
@@ -28,6 +29,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
+data class Chapter(
+    val title: String,
+    val duration: Long,
+)
 @Singleton
 class PlayerController @Inject constructor(
     @ApplicationContext private val context: Context
@@ -44,7 +49,8 @@ class PlayerController @Inject constructor(
     private val _currentPosition: MutableStateFlow<Long> = MutableStateFlow(0L)
     val currentPosition = _currentPosition.asStateFlow()
 
-    private val _retrievedDurations: MutableStateFlow<List<Long>> = MutableStateFlow(emptyList())
+    private val _retrievedChapters: MutableStateFlow<List<Chapter>> = MutableStateFlow(emptyList())
+    val retrievedChapters = _retrievedChapters.asStateFlow()
 
     private val _currentDuration: MutableStateFlow<Long> = MutableStateFlow(0L)
     val currentDuration = _currentDuration.asStateFlow()
@@ -87,7 +93,7 @@ class PlayerController @Inject constructor(
             _currentChapter.value = mediaController?.currentMediaItemIndex ?: 0
             _totalChapters.value = mediaController?.mediaItemCount ?: 0
             _currentDuration.value =
-                _retrievedDurations.value.getOrNull(_currentChapter.value) ?: 0L
+                _retrievedChapters.value.map{it.duration}.getOrNull(_currentChapter.value) ?: 0L
             /*Using this instead of the mediaController duration
          due to getting weird values from it probable due to timing.
          Will also need chapters later though so its fine
@@ -105,7 +111,7 @@ class PlayerController @Inject constructor(
     }
 
     fun playAudiobook(audiobook: Audiobook) {
-        setFallBackDuration()
+        setFallBackDuration()//shouldnt get here if audiobook doesnt exist
         _currentAudiobook.value = audiobook
         val intent = Intent(context, PlayerService::class.java).apply {
             action = PlayerService.ACTION_PLAY
@@ -163,7 +169,11 @@ class PlayerController @Inject constructor(
             )
         }
     }
-
+    fun goToChapter(chapter: Int){
+        if((mediaController?.mediaItemCount ?: 0) > chapter){
+            mediaController?.seekTo(chapter,0L)
+        }
+    }
     private fun startTracking() {
         mediaController?.let {
             scope.launch {
@@ -177,7 +187,12 @@ class PlayerController @Inject constructor(
 
     private fun setFallBackDuration() {
         scope.launch {
-            DocumentFile.fromSingleUri(context, _currentAudiobook.value?.uriString?.toUri()!!)
+            val doc = if (DocumentsContract.isTreeUri(_currentAudiobook.value?.uriString?.toUri())){
+                DocumentFile.fromTreeUri(context,_currentAudiobook.value?.uriString?.toUri()!!)
+            }else{
+                DocumentFile.fromSingleUri(context,_currentAudiobook.value?.uriString?.toUri()!!)
+            }
+            doc
                 ?.let { it ->
                     if (it.isDirectory) {
                         it.listFiles()
@@ -185,17 +200,20 @@ class PlayerController @Inject constructor(
                             .sortedBy { it.name }
                             .forEach {
                                 retriever.setDataSource(context, it.uri)
-                                val duration =
-                                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+
+                                _retrievedChapters.value += Chapter(
+                                    title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: "Unknown",
+                                    duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
                                         ?.toLong() ?: 0L
-                                _retrievedDurations.value += duration
+                                )
                             }
                     } else {
                         retriever.setDataSource(context, it.uri)
-                        val duration =
-                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                        _retrievedChapters.value +=  Chapter(
+                            title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: "Unknown",
+                            duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
                                 ?.toLong() ?: 0L
-                        _retrievedDurations.value += duration
+                        )
                     }
                 }
         }

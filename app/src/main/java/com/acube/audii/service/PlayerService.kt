@@ -7,9 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
+import android.provider.DocumentsContract
 import androidx.annotation.OptIn
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.media3.common.MediaItem
@@ -87,7 +86,11 @@ class PlayerService : MediaSessionService() {
 
     @OptIn(UnstableApi::class)
     private fun playAudiobook(audiobook: Audiobook, chapter: Int, position: Long) {
-        val doc = DocumentFile.fromSingleUri(this, audiobook.uriString.toUri())
+        val doc = if (DocumentsContract.isTreeUri(audiobook.uriString.toUri())){
+            DocumentFile.fromTreeUri(this, audiobook.uriString.toUri())
+        }else{
+            DocumentFile.fromSingleUri(this, audiobook.uriString.toUri())
+        }
         if (doc?.isDirectory == true) {
             val mediaItems = getMediaUris(doc)
             mediaSession?.player?.setMediaItems(mediaItems)

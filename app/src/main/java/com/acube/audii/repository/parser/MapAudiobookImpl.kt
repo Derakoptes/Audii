@@ -2,9 +2,9 @@ package com.acube.audii.repository.parser
 
 import android.content.Context
 import android.net.Uri
+import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
 import com.acube.audii.model.AudiobookData
-import com.acube.audii.model.database.Audiobook
 import com.acube.audii.model.parser.AudiobookParser
 import com.acube.audii.model.parser.MapAudiobook
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -32,8 +32,11 @@ class MapAudiobookImpl @Inject constructor(
     }
 
     override fun mapFolderToAudiobooks(uri: Uri): List<AudiobookData> {
-        val document = DocumentFile.fromSingleUri(context, uri)
-        if (document?.isDirectory == false) throw Exception("Not a folder")
+        val document =if (DocumentsContract.isTreeUri(uri)){
+            DocumentFile.fromTreeUri(context, uri)
+        }else{
+            DocumentFile.fromSingleUri(context, uri)
+        }
         if ((document?.listFiles()?.size ?: 0) <= 0) throw Exception("No files in folder")
 
         val audiobookData = mutableListOf<AudiobookData>()

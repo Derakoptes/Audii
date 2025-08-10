@@ -2,9 +2,11 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,6 +20,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -46,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.view.mainScreen.audiobookList.AudiobookListItem
 import com.acube.audii.view.mainScreen.player.BottomPlayerSheet
+import com.acube.audii.viewModel.AudiobookListUiState
 import com.acube.audii.viewModel.PlayerUiState
 import com.acube.audii.viewModel.ProcessorUiState
 import kotlinx.coroutines.flow.StateFlow
@@ -65,7 +69,11 @@ fun AudiobookListScreen(
     onPlayerSkipNext: () -> Unit = {},
     onPlayerSkipPrevious: () -> Unit = {},
     onPlayerClick: () -> Unit = {},
-    onSwipeDown: () -> Unit
+    onSwipeDown: () -> Unit,
+    audiobookUiState: StateFlow<AudiobookListUiState>,
+    clearAudiobookUiStateError :()->Unit,
+    clearProcessorUiStateError :()->Unit
+
 ) {
     val audiobookList by audiobooks.collectAsState(initial = emptyList())
     val isAdding by isAddingAudiobook.collectAsState()
@@ -126,12 +134,18 @@ fun AudiobookListScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                if (isAdding==ProcessorUiState.Loading) {
+                if (isAdding==ProcessorUiState.Loading ||  audiobookUiState.value.isLoading) {
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidth(),
                         color = MaterialTheme.colorScheme.secondary
                     )
                 }
+                ErrorSection(
+                    processError = isAdding,
+                    clearProcessorUiStateError = clearProcessorUiStateError,
+                    audiobookUiState = audiobookUiState.value,
+                    clearAudiobookUiStateError = clearAudiobookUiStateError
+                )
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -408,5 +422,57 @@ private fun NoSearchResultsContent(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
+    }
+}
+
+@Composable
+private fun ErrorSection(
+    processError: ProcessorUiState,
+    clearProcessorUiStateError: () -> Unit,
+    audiobookUiState: AudiobookListUiState,
+    clearAudiobookUiStateError: () -> Unit
+){
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        if (processError is ProcessorUiState.Error) {
+            ErrorCard(
+                errorMessage = processError.message,
+                onDismiss = clearProcessorUiStateError
+            )
+        }
+        if (audiobookUiState.errorMessage != null) {
+            ErrorCard(
+                errorMessage = audiobookUiState.errorMessage,
+                onDismiss = clearAudiobookUiStateError
+            )
+        }
+    }
+}
+
+@Composable
+private fun ErrorCard(
+    errorMessage: String,
+    onDismiss: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = errorMessage, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error, modifier = Modifier.weight(0.75f))
+            IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
+                Icon(Icons.Default.Clear, contentDescription = "Dismiss error", tint = MaterialTheme.colorScheme.error,modifier = Modifier.weight(0.75f))
+            }
+        }
     }
 }

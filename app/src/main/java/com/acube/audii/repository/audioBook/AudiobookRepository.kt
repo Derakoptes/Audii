@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface AudiobookRepository {
     fun getAllAudiobooks(): Flow<List<Audiobook>>
+    suspend fun getAudiobooks(): List<Audiobook>
     suspend fun getAudiobookById(id: String): Audiobook?
     suspend fun addAudiobook(audiobook: Audiobook)
     suspend fun updateAudiobook(audiobook: Audiobook)
@@ -19,6 +20,10 @@ class AudiobookRepositoryImpl @Inject constructor(
 ): AudiobookRepository{
     override fun getAllAudiobooks(): Flow<List<Audiobook>> {
         return audiobookDao.getAllAudiobooks()
+    }
+
+    override suspend fun getAudiobooks(): List<Audiobook> {
+        return audiobookDao.getAudiobooks()
     }
 
     override suspend fun getAudiobookById(id: String): Audiobook? {

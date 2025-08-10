@@ -47,7 +47,9 @@ class ProcessorViewModel @Inject constructor(
             throw e
         }
     }
-
+    fun clearProcessorUiStateError(){
+        _uiState.value= ProcessorUiState.Idle
+    }
      fun processFolderForMultipleAudiobooks(uri: Uri): List<AudiobookData> {
         _uiState.value = ProcessorUiState.Loading
         try {

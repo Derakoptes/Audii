@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.ui.theme.AudiiTheme
+import com.acube.audii.viewModel.AudiobookListUiState
 import com.acube.audii.viewModel.PlayerUiState
 import com.acube.audii.viewModel.ProcessorUiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -79,7 +80,10 @@ private fun AudiobookListScreenPreview() {
             audiobooks = MutableStateFlow(sampleAudiobooks) as StateFlow<List<Audiobook>>,
             isAddingAudiobook = MutableStateFlow(ProcessorUiState.Idle),
             playerState = MutableStateFlow(PlayerUiState()),
-            onSwipeDown = {}
+            onSwipeDown = {},
+            audiobookUiState = MutableStateFlow(AudiobookListUiState()),
+            clearAudiobookUiStateError = {},
+            clearProcessorUiStateError = {}
         )
     }
 }
@@ -92,7 +96,10 @@ private fun AudiobookListScreenEmptyPreview() {
             audiobooks = MutableStateFlow(emptyList()),
             isAddingAudiobook = MutableStateFlow(ProcessorUiState.Idle),
             playerState = MutableStateFlow(PlayerUiState()),
-            onSwipeDown = {}
+            onSwipeDown = {},
+            audiobookUiState = MutableStateFlow(AudiobookListUiState()),
+            clearAudiobookUiStateError = {},
+            clearProcessorUiStateError = {}
         )
     }
 }
@@ -105,9 +112,12 @@ private fun AudiobookListScreenSingleItemPreview() {
             audiobooks = MutableStateFlow(listOf(sampleAudiobooks.first())),
             isAddingAudiobook = MutableStateFlow(ProcessorUiState.Idle),
             playerState = MutableStateFlow(PlayerUiState()),
-            onSwipeDown = {}
+            onSwipeDown = {},
+            audiobookUiState = MutableStateFlow(AudiobookListUiState()),
+            clearAudiobookUiStateError = {},
+            clearProcessorUiStateError = {}
 
-        )
+            )
     }
 }
 
@@ -119,9 +129,11 @@ private fun AudiobookListScreenWithLoadingPreview() {
             audiobooks = MutableStateFlow(sampleAudiobooks),
             isAddingAudiobook = MutableStateFlow(ProcessorUiState.Loading),
             playerState = MutableStateFlow(PlayerUiState()),
-            onSwipeDown = {}
-
-        )
+            onSwipeDown = {},
+            audiobookUiState = MutableStateFlow(AudiobookListUiState()),
+            clearAudiobookUiStateError = {},
+            clearProcessorUiStateError = {}
+            )
     }
 }
 

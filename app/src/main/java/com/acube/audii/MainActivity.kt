@@ -111,6 +111,7 @@ class MainActivity : ComponentActivity() {
                 uri?.let {
                     val audiobooksData = processorViewModel.processFolderForMultipleAudiobooks(it)
                     if (audiobooksData.isNotEmpty()) {
+                        audiobookViewModel.addDatasource(uri.toString())
                         withContext(Dispatchers.IO) {
                             audiobooksData.forEach { data ->
                                 audiobookViewModel.addAudiobook(data)
@@ -185,6 +186,37 @@ class MainActivity : ComponentActivity() {
             String.format(Locale.current.platformLocale, "%s%02d:%02d", if (millis < 0) "-" else "", minutes, seconds)
         }
     }
+    private fun syncDatasources(){
+        lifecycleScope.launch{
+            try {
+                val unAdded = audiobookViewModel.syncDatasources()
+                if (unAdded.isNotEmpty()) {
+                    showToast(
+                        "Adding ${unAdded.size} new audiobooks",
+                        Toast.LENGTH_SHORT
+                    )
+                    unAdded.forEach {
+                        val audiobookData = processorViewModel.processSingleFile(it)
+                        withContext(Dispatchers.IO) {
+                            audiobookViewModel.addAudiobook(audiobookData)
+                            withContext(Dispatchers.Main) {
+                                showToast(
+                                    "Added audiobook: ${audiobookData.title}",
+                                    Toast.LENGTH_LONG
+                                )
+                            }
+                        }
+                    }
+                }
+
+            } catch (e: Exception) {
+                showToast(
+                    "Error syncing datasources: ${e.message}",
+                    Toast.LENGTH_LONG
+                )
+            }
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -204,6 +236,7 @@ class MainActivity : ComponentActivity() {
                 var showAddDialog by remember { mutableStateOf(false) }
                 LaunchedEffect(key1 = Unit) {
                     audiobookViewModel.setUpController()
+                    syncDatasources()
                 }
                 val playerUiState by playerViewModel.uiState.collectAsState()
                 var showPlayerSheet by remember { mutableStateOf(false) }
@@ -219,30 +252,48 @@ class MainActivity : ComponentActivity() {
                         onSeekTo = { position -> playerViewModel.seekTo(position) },
                         onClose = { showPlayerSheet = false },
                         formatTime = { millis -> formatTime(millis) },
-                        onChangeSpeed ={ speed->playerViewModel.changeSpeed(speed)}
+                        onChangeSpeed ={ speed->playerViewModel.changeSpeed(speed)},
+                        onGoToChapter = {
+                            playerViewModel.goToChapter(it)
+                        }
                     )
                 } else {
                     AudiobookListScreen(
                         audiobooks = audiobooks,
                         onAudiobookClick = { audiobookId ->
                             lifecycleScope.launch {
-                                val audiobook = audiobooks.value.find { it.id == audiobookId }
-                                audiobook?.let {
-                                    playerViewModel.playAudiobook(it)
-                                    audiobookViewModel.setCurrentAudiobook(audiobook.id)
+                                try{
+                                    val audiobook = audiobooks.value.find { it.id == audiobookId }
+                                    audiobook?.let {
+                                        playerViewModel.playAudiobook(it)
+                                        audiobookViewModel.setCurrentAudiobook(audiobook.id)
+                                    }
+                                }catch (e: Exception){
+                                    withContext(Dispatchers.Main){
+                                        showToast(
+                                            "Error playing audiobook: ${e.message}",
+                                            Toast.LENGTH_LONG
+                                        )
+                                    }
                                 }
-
                             }
                         },
-                        onAddAudiobook = { showAddDialog=true },
+                        onAddAudiobook = { showAddDialog = true },
                         isAddingAudiobook = loadingUiState,
                         playerState = playerViewModel.uiState,
-                        onPlayerPlayPause = {  playerViewModel.playPause()},
-                        onPlayerSkipNext = {  playerViewModel.nextChapter()},
-                        onPlayerSkipPrevious = {  playerViewModel.previousChapter()},
+                        audiobookUiState = audiobookViewModel.audioBookUiState,
+                        onPlayerPlayPause = { playerViewModel.playPause() },
+                        onPlayerSkipNext = { playerViewModel.nextChapter() },
+                        onPlayerSkipPrevious = { playerViewModel.previousChapter() },
                         onPlayerClick = { showPlayerSheet = true },
                         onSwipeDown = {
-                           stopAndSave()
+                            stopAndSave()
+                        },
+                        clearAudiobookUiStateError ={
+                            audiobookViewModel.clearAudiobookUiStateError()
+                        },
+                        clearProcessorUiStateError = {
+                            processorViewModel.clearProcessorUiStateError()
                         }
                     )
                 }
@@ -256,6 +307,8 @@ class MainActivity : ComponentActivity() {
     }
 
 }
+
+
 
 enum class ADD_TYPE {
     ONE_FROM_FILE,

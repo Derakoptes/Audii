@@ -107,7 +107,8 @@ class Converters{
 interface AudiobookDao{
     @Query("SELECT * FROM audiobooks ORDER BY modifiedDate DESC")
     fun getAllAudiobooks(): Flow<List<Audiobook>>
-
+    @Query("SELECT * FROM audiobooks")
+    suspend fun getAudiobooks(): List<Audiobook>
     @Query("SELECT * FROM audiobooks WHERE id = :id")
     suspend fun getAudioBookById(id:String): Audiobook?
 

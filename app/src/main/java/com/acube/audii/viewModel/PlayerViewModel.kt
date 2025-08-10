@@ -1,13 +1,16 @@
 package com.acube.audii.viewModel
 
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.acube.audii.model.database.Audiobook
+import com.acube.audii.repository.player.Chapter
 import com.acube.audii.repository.player.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 data class PlayerUiState(
@@ -19,8 +22,11 @@ data class PlayerUiState(
     val totalChapters: Int = 0,
     val playbackSpeed: Float = 1.0f,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val chapters:List<Chapter> = emptyList()
 )
+
+
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
@@ -45,7 +51,8 @@ class PlayerViewModel @Inject constructor(
                 controller.totalChapters,
                 controller.isLoading,
                 controller.isPlaying,
-                controller.playbackSpeed
+                controller.playbackSpeed,
+                controller.retrievedChapters
             ) { it ->
                 PlayerUiState(
                     currentAudiobook = it[0] as Audiobook?,
@@ -56,7 +63,8 @@ class PlayerViewModel @Inject constructor(
                     isLoading = it[5] as Boolean,
                     isPlaying = it[6] as Boolean,
                     playbackSpeed = it[7] as Float,
-                    errorMessage = ""
+                    errorMessage = "",
+                    chapters = it[8] as List<Chapter>
                 )
             }.collect { _uiState.value = it }
         }
@@ -65,6 +73,11 @@ class PlayerViewModel @Inject constructor(
 
     fun playAudiobook(audiobook: Audiobook) {
         try {
+            val filePath = audiobook.uriString.toUri().path
+            if (filePath?.isEmpty()==true || File(filePath?:"").exists()){
+                _uiState.value = _uiState.value.copy(errorMessage = "File does not exist")
+                throw Exception("File does not exist")
+            }
             controller.playAudiobook(audiobook)
         } catch (e: Exception) {
             _uiState.value = _uiState.value.copy(errorMessage = e.message)
@@ -93,6 +106,9 @@ class PlayerViewModel @Inject constructor(
     }
     fun stopPlaying(){
         controller.stopPlaying()
+    }
+    fun goToChapter(chapter:Int){
+        controller.goToChapter(chapter)
     }
     private fun release(){
         _uiState.value = PlayerUiState()

@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
 import com.acube.audii.model.AudiobookData
 import com.acube.audii.model.parser.AudiobookParser
@@ -19,7 +20,15 @@ class AudiobookParserImpl @Inject constructor(): AudiobookParser {
         uri: Uri,
         context: Context
     ): AudiobookData? {
-        val documentFile = DocumentFile.fromSingleUri(context, uri) ?: return null
+        val documentFile: DocumentFile? = if (DocumentsContract.isTreeUri(uri)) {
+            DocumentFile.fromTreeUri(context, uri)
+        } else {
+            DocumentFile.fromSingleUri(context, uri)
+        }
+        if (documentFile == null) {
+            throw IllegalArgumentException("Invalid URI: $uri")
+        }
+
         val title = if (documentFile.isDirectory) {
             documentFile.name ?: "Unknown"
         } else {
@@ -42,7 +51,7 @@ class AudiobookParserImpl @Inject constructor(): AudiobookParser {
         val retriever = MediaMetadataRetriever()
         retriever.setDataSource(context, firstAudioFile.uri)
 
-        val possibleImage = if( firstAudioFile.isDirectory )documentFile.listFiles().find { it.type?.startsWith("image/") == true }?.uri else null
+        val possibleImage = if( documentFile.isDirectory )documentFile.listFiles().find { it.type?.startsWith("image/") == true }?.uri else null
         val imagePath = when (documentFile.isDirectory && possibleImage != null) {
             true -> {
                 addUriImageToDatabase(
