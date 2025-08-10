@@ -13,8 +13,7 @@ interface DatasourceRepository{
 
 class DatasourceRepositoryImpl @Inject constructor(private val dataSourceDao: DatasourceDao):DatasourceRepository{
     override suspend fun getAllDatasources(): List<Datasource> {
-        return dataSourceDao.getAllDatasources().also {
-        }
+        return dataSourceDao.getAllDatasources()
     }
 
     override suspend fun getDatasourceById(id: String): Datasource? {
