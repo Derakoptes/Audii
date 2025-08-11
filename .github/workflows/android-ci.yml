@@ -41,6 +41,12 @@ jobs:
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: ./gradlew assembleRelease
 
+    - name: Upload APK as Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-release
+        path: app/build/outputs/apk/release/app-release.apk
+
     - name: Upload to Releases
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
