@@ -37,7 +37,6 @@ class PlayerService : MediaSessionService() {
         const val ACTION_PLAY = "com.acube.audii.service.PLAY"
         const val EXTRA_AUDIOBOOK = "com.acube.audii.service.AUDIOBOOK"
 
-        private const val NOTIFICATION_ID = 123
         private const val CHANNEL_ID = "audii_channel_id"
     }
 
@@ -80,7 +79,7 @@ class PlayerService : MediaSessionService() {
         val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
             description = descriptionText
         }
-        val notificationManager: NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager: NotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
     }
 
