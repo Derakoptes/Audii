@@ -99,8 +99,7 @@ fun PlayerSheet(
     var playbackSpeed by remember { mutableFloatStateOf(playerState.playbackSpeed) }
 
      fun changeSpeed(){
-        var newSpeed = 1f
-         newSpeed = if(playbackSpeed == 3f){
+         val newSpeed = if(playbackSpeed == 3f){
              0.5f
          }else{
              playbackSpeed+0.5f
@@ -698,11 +697,9 @@ fun PlayerSheet(
                                             )
                                         }
                                     }
-
-                                    Spacer(modifier = Modifier.height(16.dp))
-//                                    Button(onClick = { changeSpeed() }) {
-//                                        Text(text = "${playbackSpeed}x")
-//                                    }
+                                    Button(onClick = { changeSpeed() }) {
+                                        Text(text = "${playbackSpeed}x")
+                                    }
                                 }
                             }
                         }

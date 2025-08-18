@@ -73,6 +73,7 @@ class PlayerViewModel @Inject constructor(
 
     fun playAudiobook(audiobook: Audiobook) {
         try {
+            if(_uiState.value.isPlaying){stopPlaying()}
             val filePath = audiobook.uriString.toUri().path
             if (filePath?.isEmpty()==true || File(filePath?:"").exists()){
                 _uiState.value = _uiState.value.copy(errorMessage = "File does not exist")
