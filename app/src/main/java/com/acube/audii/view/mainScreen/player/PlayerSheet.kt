@@ -45,6 +45,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -422,7 +423,9 @@ fun PlayerSheet(
                                 }
 
                                 Spacer(modifier = Modifier.height(16.dp))
-
+                                TextButton(onClick = { changeSpeed() }) {
+                                    Text(text = "${playbackSpeed}x")
+                                }
                             }
                         }
                     } else {
@@ -697,7 +700,9 @@ fun PlayerSheet(
                                             )
                                         }
                                     }
-                                    Button(onClick = { changeSpeed() }) {
+
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    TextButton(onClick = { changeSpeed() }) {
                                         Text(text = "${playbackSpeed}x")
                                     }
                                 }

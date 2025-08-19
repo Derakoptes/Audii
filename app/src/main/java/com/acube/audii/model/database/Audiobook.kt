@@ -123,6 +123,9 @@ interface AudiobookDao{
 
     @Query("UPDATE audiobooks SET currentPosition = :currentPosition WHERE id = :id")
     suspend fun updatePlaybackPosition(id: String, currentPosition: Pair<Int,Long>)
+
+    @Query("UPDATE audiobooks SET speed = :speed WHERE id = :id")
+    suspend fun updatePlaybackSpeed(id: String, speed: Float)
 }
 
 //TODO:exporting the schema

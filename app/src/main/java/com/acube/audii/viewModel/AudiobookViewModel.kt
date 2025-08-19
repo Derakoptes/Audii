@@ -54,9 +54,9 @@ class AudiobookViewModel @Inject constructor(
     private val _audioBookUiState = MutableStateFlow(AudiobookListUiState())
     val audioBookUiState = _audioBookUiState.asStateFlow()
 
-    private var currentPlayingAudiobook:String=""
+    private var currentPlayingAudiobook: String = ""
     private lateinit var mediaControllerFuture: ListenableFuture<MediaController>
-    private val scope = CoroutineScope(Dispatchers.IO+ Job())
+    private val scope = CoroutineScope(Dispatchers.IO + Job())
     private var mediaController: MediaController? = null
 
     init {
@@ -76,13 +76,19 @@ class AudiobookViewModel @Inject constructor(
             errorMessage = null
         )
     }
-     fun setCurrentAudiobook(id:String){
-        currentPlayingAudiobook=id
-    }
-    fun setUpController() {
-        val sessionToken = SessionToken(applicationContext, ComponentName(applicationContext, PlayerService::class.java))
 
-        mediaControllerFuture = MediaController.Builder(applicationContext, sessionToken).buildAsync()
+    fun setCurrentAudiobook(id: String) {
+        currentPlayingAudiobook = id
+    }
+
+    fun setUpController() {
+        val sessionToken = SessionToken(
+            applicationContext,
+            ComponentName(applicationContext, PlayerService::class.java)
+        )
+
+        mediaControllerFuture =
+            MediaController.Builder(applicationContext, sessionToken).buildAsync()
 
         mediaControllerFuture.addListener({
             mediaController = mediaControllerFuture.get()
@@ -90,13 +96,14 @@ class AudiobookViewModel @Inject constructor(
             startTracking()
         }, MoreExecutors.directExecutor())
     }
+
     @OptIn(ExperimentalUuidApi::class)
     fun addAudiobook(audiobookData: AudiobookData) {
         viewModelScope.launch {
             try {
-                if(_audioBookUiState.value.audiobooks.value.any {
-                        compareUris(it.uriString.toUri(),audiobookData.uriString.toUri())
-                    }){
+                if (_audioBookUiState.value.audiobooks.value.any {
+                        compareUris(it.uriString.toUri(), audiobookData.uriString.toUri())
+                    }) {
                     throw Exception("Audiobook: ${audiobookData.title} already exists")
                 }
                 repository.addAudiobook(
@@ -131,28 +138,46 @@ class AudiobookViewModel @Inject constructor(
             }
         }
     }
-    fun clearAudiobookUiStateError(){
+
+    fun updateAudiobookSpeed(speed: Float,id:String) {
+        viewModelScope.launch {
+            try {
+                repository.updatePlaybackSpeed(id,speed)
+            } catch (e: Exception) {
+                _audioBookUiState.value = _audioBookUiState.value.copy(
+                    errorMessage = "Failed to update audiobook speed: ${e.message}"
+                )
+            }
+        }
+    }
+
+    fun clearAudiobookUiStateError() {
         _audioBookUiState.value = _audioBookUiState.value.copy(
             errorMessage = null
         )
     }
-    private suspend fun deleteDatasource(id: String){
-         datasourceRepository.deleteDatasource(id)
+
+    private suspend fun deleteDatasource(id: String) {
+        datasourceRepository.deleteDatasource(id)
     }
-    fun saveAudiobookProgress(){
+
+    fun saveAudiobookProgress() {
         viewModelScope.launch {
             try {
-                repository.updatePlaybackPosition(currentPlayingAudiobook,position = Pair(
-                    mediaController?.currentMediaItemIndex?:0,
-                    mediaController?.currentPosition?:0L
-                ))
-            }catch (e: Exception){
+                repository.updatePlaybackPosition(
+                    currentPlayingAudiobook, position = Pair(
+                        mediaController?.currentMediaItemIndex ?: 0,
+                        mediaController?.currentPosition ?: 0L
+                    )
+                )
+            } catch (e: Exception) {
                 _audioBookUiState.value = _audioBookUiState.value.copy(
                     errorMessage = "Failed to save audiobook progress: ${e.message}"
                 )
             }
         }
     }
+
     fun syncDatasources(): List<Uri> {
         _audioBookUiState.value = _audioBookUiState.value.copy(isLoading = true)
         val toReturn = mutableListOf<Uri>()
@@ -160,7 +185,8 @@ class AudiobookViewModel @Inject constructor(
         runBlocking {
             val job = viewModelScope.launch(Dispatchers.IO) {
                 try {
-                    val existingUriStrings = async { repository.getAudiobooks().map { it.uriString }.toSet() }.await()
+                    val existingUriStrings =
+                        async { repository.getAudiobooks().map { it.uriString }.toSet() }.await()
                     val datasources = async { datasourceRepository.getAllDatasources() }.await()
 
                     datasources.forEach { dataSource ->
@@ -195,9 +221,10 @@ class AudiobookViewModel @Inject constructor(
         _audioBookUiState.value = _audioBookUiState.value.copy(isLoading = false)
         return toReturn
     }
+
     @OptIn(ExperimentalUuidApi::class)
-    fun addDatasource(uri: String){
-        try{
+    fun addDatasource(uri: String) {
+        try {
             viewModelScope.launch(Dispatchers.IO) {
                 datasourceRepository.addDatasource(
                     Datasource(
@@ -206,17 +233,18 @@ class AudiobookViewModel @Inject constructor(
                     )
                 )
             }
-        }catch (e: Exception){
+        } catch (e: Exception) {
             throw Exception("Error adding datasource: ${e.message}")
         }
     }
-    private fun startTracking(){
+
+    private fun startTracking() {
         scope.launch {
-            while (true){
-                if(currentPlayingAudiobook.isNotEmpty()){
+            while (true) {
+                if (currentPlayingAudiobook.isNotEmpty()) {
                     saveAudiobookProgress()
                 }
-                delay(90*1000)
+                delay(90 * 1000)
             }
         }
     }
@@ -224,9 +252,9 @@ class AudiobookViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         scope.cancel()
-        currentPlayingAudiobook=""
+        currentPlayingAudiobook = ""
         mediaController?.release()
-        mediaController=null
+        mediaController = null
     }
 }
 

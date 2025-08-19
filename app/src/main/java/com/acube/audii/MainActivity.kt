@@ -252,7 +252,10 @@ class MainActivity : ComponentActivity() {
                         onSeekTo = { position -> playerViewModel.seekTo(position) },
                         onClose = { showPlayerSheet = false },
                         formatTime = { millis -> formatTime(millis) },
-                        onChangeSpeed ={ speed->playerViewModel.changeSpeed(speed)},
+                        onChangeSpeed ={
+                            speed->playerViewModel.changeSpeed(speed)
+                                   audiobookViewModel.updateAudiobookSpeed(speed,playerUiState.currentAudiobook!!.id)
+                                       },
                         onGoToChapter = {
                             playerViewModel.goToChapter(it)
                         }

@@ -118,7 +118,7 @@ class PlayerController @Inject constructor(
             putExtra(PlayerService.EXTRA_AUDIOBOOK, audiobook)
         }
         ContextCompat.startForegroundService(context, intent)
-
+        _playbackSpeed.value = audiobook.speed
     }
 
     fun nextChapter(){
@@ -148,6 +148,7 @@ class PlayerController @Inject constructor(
     fun changeSpeed(speed:Float){
         if(!(speed<0.5f || speed >3f) ){
             mediaController?.setPlaybackSpeed(speed)
+            _playbackSpeed.value=speed
         }
     }
     fun stopPlaying(){

@@ -81,7 +81,7 @@ Audii offers flexible ways to add your audiobooks:
 * [X] Progress Storage
 * [x] Adding from different source types 
 * [x] Adding from a repository of sorts, so it auto syncs
-* [ ] Playback speed control per audiobook
+* [x] Playback speed control per audiobook
 * [ ] Bookmarks and collections
 * [ ] Sleep timer
 

@@ -100,6 +100,7 @@ class PlayerService : MediaSessionService() {
         mediaSession?.player?.apply {
             prepare()
             seekTo(chapter, position)
+            setPlaybackSpeed(audiobook.speed)
             play()
         }
     }
