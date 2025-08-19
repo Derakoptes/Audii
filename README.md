@@ -66,12 +66,14 @@ Audii offers flexible ways to add your audiobooks:
 ## ScreenShots(Ongoing)
 
 
-<img width="225" height="500" alt="image" src="https://github.com/user-attachments/assets/a15b7651-3a39-4e58-bdcd-edacd70fd288" />
-<img width="225" height="500" alt="image" src="https://github.com/user-attachments/assets/4cde2b2a-a7b0-4398-923f-ea57916f92bb" />
-<img width="225" height="500" alt="image" src="https://github.com/user-attachments/assets/51da9463-8d94-4dcf-9cb9-7dca681d81a7" />
-<img width="225" height="500" alt="image" src="https://github.com/user-attachments/assets/c5e23074-f899-4f2f-af77-6c897f4afff3" />
-<img width="225" height="500" alt="image" src="https://github.com/user-attachments/assets/6b0b3d18-63b0-4e17-86ba-6b3b25cfb63e" />
-<img width="225" height="500" alt="image" src="https://github.com/user-attachments/assets/51276525-5e95-42cd-9c1a-b531a8b708cd" />
+![Screenshot_20250819_020200_Audii](https://github.com/user-attachments/assets/ed186bea-d4f1-457f-bbed-6e93fb503026)
+![Screenshot_20250819_020139_Audii](https://github.com/user-attachments/assets/452e787f-a21f-4525-8647-cf93d8a3ddcc)
+![Screenshot_20250819_020333_Audii](https://github.com/user-attachments/assets/610007e9-5855-4451-aec7-68077a5e7cf6)
+![Screenshot_20250819_020254_Audii](https://github.com/user-attachments/assets/fe323ce4-2b7d-4ec1-923a-7d49348937de)
+![Screenshot_20250819_020250_Audii](https://github.com/user-attachments/assets/ddd23327-0887-4633-a568-3f7c64b868c2)
+![Screenshot_20250819_020216_Audii](https://github.com/user-attachments/assets/24dc628e-0e5e-4acb-9434-0f69ebfa4761)
+![Screenshot_20250819_020213_Audii](https://github.com/user-attachments/assets/6c853c07-9052-454b-af2b-42863306ec45)
+
 
 
 ---
