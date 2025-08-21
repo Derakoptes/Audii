@@ -646,24 +646,31 @@ fun PlayerSheet(
                                         }
 
                                         // Play/Pause button
-                                        Card(
+                                        Button(
+                                            onClick = onPlayPause,
                                             modifier = Modifier.size(72.dp),
                                             shape = CircleShape,
-                                            colors = CardDefaults.cardColors(
+                                            colors = ButtonDefaults.buttonColors(
                                                 containerColor = MaterialTheme.colorScheme.primary
-                                            ),
-                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                            )
                                         ) {
-                                            IconButton(
-                                                onClick = onPlayPause,
-                                                modifier = Modifier.fillMaxSize()
-                                            ) {
-                                                Icon(
-                                                    imageVector = if (playerState.isPlaying) Icons.Default.PlayArrow else Icons.Default.PlayArrow,
-                                                    contentDescription = if (playerState.isPlaying) "Pause" else "Play",
-                                                    modifier = Modifier.size(36.dp),
-                                                    tint = MaterialTheme.colorScheme.onPrimary
-                                                )
+                                            when (playerState.isPlaying) {
+                                                false -> {
+                                                    Icon(
+                                                        imageVector = Icons.Default.PlayArrow,
+                                                        contentDescription = "Play",
+                                                        modifier = Modifier,
+                                                        tint = MaterialTheme.colorScheme.onPrimary
+                                                    )
+                                                }
+                                                true ->{
+                                                    Image(
+                                                        painter = painterResource(id = com.acube.audii.R.drawable.pause),
+                                                        contentDescription = "Pause",
+                                                        modifier = Modifier,
+                                                        colorFilter = ColorFilter.tint(color= MaterialTheme.colorScheme.onPrimary)
+                                                    )
+                                                }
                                             }
                                         }
 
