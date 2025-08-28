@@ -18,17 +18,19 @@ import kotlinx.coroutines.flow.Flow
 @Entity(tableName = "audiobooks")
 data class Audiobook(
     @PrimaryKey val id: String,
-    val title:String,
-    val author:String,
-    val narrator:String,
-    val uriString:String,
+    val title: String,
+    val author: String,
+    val narrator: String,
+    val uriString: String,
     val duration: List<Long>, //in millis
-    val currentPosition: Pair<Int,Long> = Pair(0,0),//chapter and progress in chapter
-    val coverImageUriPath:String? = null,
-    val modifiedDate : Long = System.currentTimeMillis(),//time since
-    val skipTimings: Pair<Int,Int> = Pair(10,10),//forward and backward skipping timings
-    val speed: Float = 1.0f
-): Parcelable {
+    val currentPosition: Pair<Int, Long> = Pair(0, 0),//chapter and progress in chapter
+    val coverImageUriPath: String? = null,
+    val modifiedDate: Long = System.currentTimeMillis(),//time since
+    val skipTimings: Pair<Int, Int> = Pair(10, 10),//forward and backward skipping timings
+    val speed: Float = 1.0f,
+    val collections: List<Int> = emptyList(),
+    val bookmarks: List<Long> = emptyList(),
+) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
         parcel.readString()!!,
@@ -40,7 +42,9 @@ data class Audiobook(
         parcel.readString(),
         parcel.readLong(),
         Pair(parcel.readInt(), parcel.readInt()),
-        parcel.readFloat()
+        parcel.readFloat(),
+        parcel.createIntArray()!!.toList(),
+        parcel.createLongArray()!!.toList(),
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -57,6 +61,8 @@ data class Audiobook(
         parcel.writeInt(skipTimings.first)
         parcel.writeInt(skipTimings.second)
         parcel.writeFloat(speed)
+        parcel.writeIntArray(collections.toIntArray())
+        parcel.writeLongArray(bookmarks.toLongArray())
     }
 
     override fun describeContents(): Int {
@@ -74,43 +80,76 @@ data class Audiobook(
     }
 }
 
-class Converters{
+class Converters {
     @TypeConverter
-    fun listOfLongToString(list: List<Long>):String{
-        return list.joinToString(",")
-    }
-    @TypeConverter
-    fun stringToListOfLong(string: String):List<Long>{
-        return string.split(",").map { it.toLong() }
+    fun listOfLongToString(list: List<Long>): String {
+        return if (list.isEmpty()) {
+            ""
+        } else {
+            list.joinToString(",")
+        }
     }
 
     @TypeConverter
-    fun pairOfIntLongToString(pair: Pair<Int,Long>):String{
+    fun stringToListOfLong(string: String): List<Long> {
+        return if (string.isEmpty()) {
+            emptyList()
+        } else {
+            string.split(",").map { it.toLong() }
+        }
+    }
+
+    @TypeConverter
+    fun listOfIntToString(list: List<Int>): String {
+        return if (list.isEmpty()) {
+            ""
+        } else {
+            list.joinToString(",")
+        }
+    }
+
+    @TypeConverter
+    fun stringToListOfInt(string: String): List<Int> {
+        return if (string.isEmpty()) {
+            emptyList()
+        } else {
+            string.split(",").map { it.toInt() }
+        }
+    }
+
+    @TypeConverter
+    fun pairOfIntLongToString(pair: Pair<Int, Long>): String {
         return "${pair.first},${pair.second}"
     }
+
     @TypeConverter
-    fun stringToPairOfIntLong(string: String):Pair<Int,Long>{
-        val (first,second) = string.split(",")
-        return Pair(first.toInt(),second.toLong())
+    fun stringToPairOfIntLong(string: String): Pair<Int, Long> {
+        val (first, second) = string.split(",")
+        return Pair(first.toInt(), second.toLong())
     }
+
     @TypeConverter
-    fun pairOfIntToString(pair:Pair<Int,Int>):String{
+    fun pairOfIntToString(pair: Pair<Int, Int>): String {
         return "${pair.first},${pair.second}"
     }
+
     @TypeConverter
-    fun stringToPairOfInt(string: String):Pair<Int,Int>{
-        val (first,second) = string.split(",")
-        return Pair(first.toInt(),second.toInt())
+    fun stringToPairOfInt(string: String): Pair<Int, Int> {
+        val (first, second) = string.split(",")
+        return Pair(first.toInt(), second.toInt())
     }
 }
+
 @Dao
-interface AudiobookDao{
+interface AudiobookDao {
     @Query("SELECT * FROM audiobooks ORDER BY modifiedDate DESC")
     fun getAllAudiobooks(): Flow<List<Audiobook>>
+
     @Query("SELECT * FROM audiobooks")
     suspend fun getAudiobooks(): List<Audiobook>
+
     @Query("SELECT * FROM audiobooks WHERE id = :id")
-    suspend fun getAudioBookById(id:String): Audiobook?
+    suspend fun getAudioBookById(id: String): Audiobook?
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertAudiobook(audiobook: Audiobook)
@@ -122,16 +161,22 @@ interface AudiobookDao{
     suspend fun deleteAudiobook(id: String)
 
     @Query("UPDATE audiobooks SET currentPosition = :currentPosition WHERE id = :id")
-    suspend fun updatePlaybackPosition(id: String, currentPosition: Pair<Int,Long>)
+    suspend fun updatePlaybackPosition(id: String, currentPosition: Pair<Int, Long>)
 
     @Query("UPDATE audiobooks SET speed = :speed WHERE id = :id")
     suspend fun updatePlaybackSpeed(id: String, speed: Float)
+
+    @Query("UPDATE audiobooks SET collections = :collections WHERE id = :id")
+    suspend fun updateCollections(id: String, collections: List<Int>)
+
+    @Query("UPDATE audiobooks SET bookmarks = :bookmarks WHERE id = :id")
+    suspend fun updateBookmarks(id: String, bookmarks: List<Long>)
 }
 
 //TODO:exporting the schema
-@Database(entities = [Audiobook::class], exportSchema = false,version = 1)
+@Database(entities = [Audiobook::class], exportSchema = true, version = 2)
 @TypeConverters(Converters::class)
-abstract class AudiobookDatabase : RoomDatabase(){
+abstract class AudiobookDatabase : RoomDatabase() {
     abstract fun audiobookDao(): AudiobookDao
 }
 
