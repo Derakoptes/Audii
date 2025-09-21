@@ -14,6 +14,7 @@ interface AudiobookRepository {
     suspend fun deleteAudiobook(id: String)
     suspend fun updatePlaybackPosition(id: String, position: Pair<Int,Long>)
     suspend fun updatePlaybackSpeed(id: String, speed: Float)
+    suspend fun updateAudiobookCollection(id:String,collections:List<Int>)
 }
 
 class AudiobookRepositoryImpl @Inject constructor(
@@ -49,6 +50,13 @@ class AudiobookRepositoryImpl @Inject constructor(
 
     override suspend fun updatePlaybackSpeed(id: String, speed: Float) {
         return audiobookDao.updatePlaybackSpeed(id = id, speed = speed)
+    }
+
+    override suspend fun updateAudiobookCollection(
+        id: String,
+        collections: List<Int>
+    ) {
+        audiobookDao.updateAudiobookCollection(id = id, collections = collections)
     }
 
 }

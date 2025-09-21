@@ -3,6 +3,7 @@ package com.acube.audii.modules
 import android.content.Context
 import androidx.room.Room
 import com.acube.audii.model.database.AudiobookDatabase
+import com.acube.audii.model.database.CollectionDatabase
 import com.acube.audii.model.database.DatasourceDatabase
 import dagger.Module
 import dagger.Provides
@@ -29,9 +30,18 @@ object DatabaseModule{
 
     @Provides
     @Singleton
+    fun provideCollectionDatabase(@ApplicationContext context: Context) : CollectionDatabase {
+        return Room.databaseBuilder(context, CollectionDatabase::class.java,"collections").build()
+    }
+    @Provides
+    @Singleton
     fun provideAudiobookDao(database: AudiobookDatabase)=database.audiobookDao()
 
     @Provides
     @Singleton
     fun provideDatasourceDao(database: DatasourceDatabase)=database.datasourceDao()
+
+    @Provides
+    @Singleton
+    fun provideCollectionDao(database: CollectionDatabase)=database.collectionDao()
 }

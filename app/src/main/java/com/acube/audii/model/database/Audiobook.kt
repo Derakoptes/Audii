@@ -171,9 +171,11 @@ interface AudiobookDao {
 
     @Query("UPDATE audiobooks SET bookmarks = :bookmarks WHERE id = :id")
     suspend fun updateBookmarks(id: String, bookmarks: List<Long>)
+
+    @Query("UPDATE audiobooks SET collections = :collections WHERE id = :id")
+    suspend fun updateAudiobookCollection(id: String, collections: List<Int>)
 }
 
-//TODO:exporting the schema
 @Database(entities = [Audiobook::class], exportSchema = true, version = 2)
 @TypeConverters(Converters::class)
 abstract class AudiobookDatabase : RoomDatabase() {

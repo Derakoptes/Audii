@@ -4,6 +4,8 @@ import com.acube.audii.model.parser.AudiobookParser
 import com.acube.audii.model.parser.MapAudiobook
 import com.acube.audii.model.repository.AudiobookRepository
 import com.acube.audii.model.repository.AudiobookRepositoryImpl
+import com.acube.audii.repository.audioBook.CollectionRepository
+import com.acube.audii.repository.audioBook.CollectionRepositoryImpl
 import com.acube.audii.repository.audioBook.DatasourceRepositoryImpl
 import com.acube.audii.repository.audioBook.DatasourceRepository
 import com.acube.audii.repository.parser.AudiobookParserImpl
@@ -35,4 +37,10 @@ abstract class RepositoryModule {
     abstract fun bindDataSourceRepository(
         dataSourceRepositoryImpl: DatasourceRepositoryImpl
     ): DatasourceRepository
+
+    @Binds
+    abstract fun bindCollectionRepository(
+        collectionRepository: CollectionRepositoryImpl
+    ): CollectionRepository
+
 }

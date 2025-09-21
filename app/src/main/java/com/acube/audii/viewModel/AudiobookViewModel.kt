@@ -157,8 +157,49 @@ class AudiobookViewModel @Inject constructor(
         )
     }
 
+    fun updateAudiobookCollections(collectionId: Int, id: String) {
+        viewModelScope.launch {
+            try {
+                val audiobook = _audioBookUiState.value.audiobooks.value.find { it.id == id }
+                audiobook?.let {
+                    val updatedCollections = it.collections.toMutableList()
+                    if (!updatedCollections.contains(collectionId)) {
+                        updatedCollections.add(collectionId)
+                        updatedCollections.sort()
+                        repository.updateAudiobookCollection(id, updatedCollections)
+                    }
+                }
+            } catch (e: Exception) {
+                _audioBookUiState.value = _audioBookUiState.value.copy(
+                    errorMessage = "Failed to update audiobook collections: ${e.message}"
+                )
+            }
+        }
+    }
+
     private suspend fun deleteDatasource(id: String) {
         datasourceRepository.deleteDatasource(id)
+    }
+
+    fun removeCollectionFromAudiobooks(collectionId: Int) {
+        viewModelScope.launch {
+            try {
+                val audiobooksToUpdate = _audioBookUiState.value.audiobooks.value.filter {
+                    it.collections.contains(collectionId)
+                }
+
+                audiobooksToUpdate.forEach { audiobook ->
+                    val updatedCollections = audiobook.collections.toMutableList()
+                    updatedCollections.remove(collectionId)
+                    updatedCollections.sort()
+                    repository.updateAudiobookCollection(audiobook.id, updatedCollections)
+                }
+            } catch (e: Exception) {
+                _audioBookUiState.value = _audioBookUiState.value.copy(
+                    errorMessage = "Failed to remove collection from audiobooks: ${e.message}"
+                )
+            }
+        }
     }
 
     fun saveAudiobookProgress() {

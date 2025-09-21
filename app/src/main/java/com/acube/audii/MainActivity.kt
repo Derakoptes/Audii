@@ -24,6 +24,7 @@ import com.acube.audii.ui.theme.AudiiTheme
 import com.acube.audii.view.mainScreen.audiobookList.AddAudiobookDialog
 import com.acube.audii.view.mainScreen.player.PlayerSheet
 import com.acube.audii.viewModel.AudiobookViewModel
+import com.acube.audii.viewModel.CollectionViewModel
 import com.acube.audii.viewModel.PlayerViewModel
 import com.acube.audii.viewModel.ProcessorUiState
 import com.acube.audii.viewModel.ProcessorViewModel
@@ -40,6 +41,7 @@ class MainActivity : ComponentActivity() {
     private val audiobookViewModel : AudiobookViewModel by viewModels()
     private val processorViewModel: ProcessorViewModel by viewModels()
     private val playerViewModel: PlayerViewModel by viewModels()
+    private val collectionViewModel: CollectionViewModel by viewModels()
 
     private lateinit var audiobookPicker: AudiobookPicker
 
@@ -239,8 +241,8 @@ class MainActivity : ComponentActivity() {
                     syncDatasources()
                 }
                 val playerUiState by playerViewModel.uiState.collectAsState()
-                var showPlayerSheet by remember { mutableStateOf(false) }
 
+                var showPlayerSheet by remember { mutableStateOf(false) }
                 if (showPlayerSheet && playerUiState.currentAudiobook != null) {
                     PlayerSheet(
                         playerState = playerUiState,
@@ -263,16 +265,17 @@ class MainActivity : ComponentActivity() {
                 } else {
                     AudiobookListScreen(
                         audiobooks = audiobooks,
+                        collectionState = collectionViewModel.collectionListUiState,
                         onAudiobookClick = { audiobookId ->
                             lifecycleScope.launch {
-                                try{
+                                try {
                                     val audiobook = audiobooks.value.find { it.id == audiobookId }
                                     audiobook?.let {
                                         playerViewModel.playAudiobook(it)
                                         audiobookViewModel.setCurrentAudiobook(audiobook.id)
                                     }
-                                }catch (e: Exception){
-                                    withContext(Dispatchers.Main){
+                                } catch (e: Exception) {
+                                    withContext(Dispatchers.Main) {
                                         showToast(
                                             "Error playing audiobook: ${e.message}",
                                             Toast.LENGTH_LONG
@@ -292,12 +295,19 @@ class MainActivity : ComponentActivity() {
                         onSwipeDown = {
                             stopAndSave()
                         },
-                        clearAudiobookUiStateError ={
+                        clearAudiobookUiStateError = {
                             audiobookViewModel.clearAudiobookUiStateError()
                         },
                         clearProcessorUiStateError = {
                             processorViewModel.clearProcessorUiStateError()
-                        }
+                        },
+                        clearCollectionErrorMessage = {collectionViewModel.clearErrorMessage()},
+                        deleteCollection = {
+                            collectionViewModel.deleteCollection(it)
+                                           audiobookViewModel.removeCollectionFromAudiobooks(it.id)
+                                           },
+                        addCollection = {collectionViewModel.addCollection(it)},
+                        addAudiobookToCollection = {collection,id->audiobookViewModel.updateAudiobookCollections(collection,id)}
                     )
                 }
                 if(showAddDialog)

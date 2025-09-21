@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Menu
@@ -46,14 +47,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.acube.audii.model.database.Audiobook
+import com.acube.audii.model.database.Collection
 import com.acube.audii.view.mainScreen.audiobookList.AudiobookListItem
+import com.acube.audii.view.mainScreen.collections.CollectionsScreen
 import com.acube.audii.view.mainScreen.player.BottomPlayerSheet
 import com.acube.audii.viewModel.AudiobookListUiState
+import com.acube.audii.viewModel.CollectionListUiState
 import com.acube.audii.viewModel.PlayerUiState
 import com.acube.audii.viewModel.ProcessorUiState
 import kotlinx.coroutines.flow.StateFlow
-
-
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,15 +72,20 @@ fun AudiobookListScreen(
     onPlayerClick: () -> Unit = {},
     onSwipeDown: () -> Unit,
     audiobookUiState: StateFlow<AudiobookListUiState>,
-    clearAudiobookUiStateError :()->Unit,
-    clearProcessorUiStateError :()->Unit
-
+    clearAudiobookUiStateError: () -> Unit,
+    clearProcessorUiStateError: () -> Unit,
+    collectionState: StateFlow<CollectionListUiState>,
+    clearCollectionErrorMessage: () -> Unit,
+    deleteCollection: (Collection) -> Unit,
+    addCollection:(Collection)->Unit,
+    addAudiobookToCollection:(collectionId:Int,audiobookId:String)->Unit
 ) {
     val audiobookList by audiobooks.collectAsState(initial = emptyList())
     val isAdding by isAddingAudiobook.collectAsState()
     val currentPlayerState by playerState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
+    var showCollectionsView by remember { mutableStateOf(false) }
 
     val filteredAudiobooks = remember(audiobookList, searchQuery) {
         if (searchQuery.isBlank()) {
@@ -107,7 +114,9 @@ fun AudiobookListScreen(
                 AudiobookTopBar(
                     audiobookCount = audiobookList.size,
                     onSearchClick = { isSearchActive = true },
-                    onAddAudiobook = onAddAudiobook
+                    onAddAudiobook = onAddAudiobook,
+                    isShowingCollections = showCollectionsView,
+                    onToggleView = { showCollectionsView = !showCollectionsView },
                 )
             }
         },
@@ -152,24 +161,42 @@ fun AudiobookListScreen(
                             bottom = if (currentPlayerState.currentAudiobook != null) 72.dp else 0.dp
                         )
                 ) {
-                    when {
-                        audiobookList.isEmpty() -> {
-                            EmptyStateContent(
-                                onAddAudiobook = onAddAudiobook,
-                                modifier = Modifier.align(Alignment.Center)
-                            )
-                        }
-                        filteredAudiobooks.isEmpty() && searchQuery.isNotBlank() -> {
-                            NoSearchResultsContent(
-                                searchQuery = searchQuery,
-                                modifier = Modifier.align(Alignment.Center)
-                            )
-                        }
-                        else -> {
-                            AudiobookList(
+                    if (showCollectionsView) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ){
+                            CollectionsScreen(
+                                uiState =collectionState,
+                                clearErrorMessage =clearCollectionErrorMessage,
+                                deleteCollection = deleteCollection,
+                                addCollection = addCollection,
                                 audiobooks = filteredAudiobooks,
-                                onAudiobookClick = onAudiobookClick,
+                                onAudiobookItemClick = onAudiobookClick,
+                                addAudiobookToCollection = addAudiobookToCollection
                             )
+                        }
+                    } else {
+                        when {
+                            audiobookList.isEmpty() -> {
+                                EmptyStateContent(
+                                    onAddAudiobook = onAddAudiobook,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                            }
+                            filteredAudiobooks.isEmpty() && searchQuery.isNotBlank() -> {
+                                NoSearchResultsContent(
+                                    searchQuery = searchQuery,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                            }
+                            else -> {
+                                AudiobookList(
+                                    audiobooks = filteredAudiobooks,
+                                    onAudiobookClick = onAudiobookClick,
+                                )
+                            }
                         }
                     }
                 }
@@ -182,7 +209,9 @@ fun AudiobookListScreen(
                     onSkipNext = onPlayerSkipNext,
                     onSkipPrevious = onPlayerSkipPrevious,
                     onPlayerClick = onPlayerClick,
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(paddingValues),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(paddingValues),
                     onSwipeDown=onSwipeDown
                 )
             }
@@ -195,7 +224,9 @@ fun AudiobookListScreen(
 private fun AudiobookTopBar(
     audiobookCount: Int,
     onSearchClick: () -> Unit,
-    onAddAudiobook: () -> Unit
+    onAddAudiobook: () -> Unit,
+    isShowingCollections: Boolean,
+    onToggleView: () -> Unit,
 ) {
     TopAppBar(
         title = {
@@ -204,9 +235,15 @@ private fun AudiobookTopBar(
                     text = "Audii",
                     style = MaterialTheme.typography.titleLarge,
                 )
-                if (audiobookCount > 0) {
+                if (audiobookCount > 0 && !isShowingCollections) {
                     Text(
                         text = "$audiobookCount ${if (audiobookCount == 1) "book" else "books"}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else if (isShowingCollections) {
+                     Text(
+                        text = "Collections",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -214,16 +251,24 @@ private fun AudiobookTopBar(
             }
         },
         actions = {
-            IconButton(onClick = onSearchClick) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search audiobooks"
-                )
+            if(!isShowingCollections){
+                IconButton(onClick = onSearchClick) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search audiobooks"
+                    )
+                }
+                IconButton(onClick = onAddAudiobook) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add audiobook"
+                    )
+                }
             }
-            IconButton(onClick = onAddAudiobook) {
+            IconButton(onClick = onToggleView) {
                 Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add audiobook"
+                    imageVector = if (isShowingCollections) Icons.Filled.Menu else Icons.AutoMirrored.Filled.List,
+                    contentDescription = if (isShowingCollections) "View Audiobook List" else "View Collections"
                 )
             }
         },
@@ -284,9 +329,10 @@ private fun SearchTopBar(
 }
 
 @Composable
-private fun AudiobookList(
+ fun AudiobookList(
     audiobooks: List<Audiobook>,
     onAudiobookClick: (String) -> Unit,
+    isCollectionScreen: Boolean = false
 ) {
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
@@ -314,11 +360,11 @@ private fun AudiobookList(
             }
         }
 
-        val remainingAudiobooks = audiobooks - recentlyPlayed.toSet()
+        val remainingAudiobooks =  audiobooks - recentlyPlayed.toSet()
         if (remainingAudiobooks.isNotEmpty()) {
             item {
                 SectionHeader(
-                    title = if (recentlyPlayed.isNotEmpty()) "All Audiobooks" else "Audiobooks"
+                    title = if (recentlyPlayed.isNotEmpty() && !isCollectionScreen ) "All Audiobooks" else "Audiobooks"
                 )
             }
             items(remainingAudiobooks.sortedBy { it.title }) { audiobook ->

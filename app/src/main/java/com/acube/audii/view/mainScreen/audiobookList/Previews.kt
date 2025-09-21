@@ -6,6 +6,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.ui.theme.AudiiTheme
 import com.acube.audii.viewModel.AudiobookListUiState
+import com.acube.audii.viewModel.CollectionListUiState
 import com.acube.audii.viewModel.PlayerUiState
 import com.acube.audii.viewModel.ProcessorUiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -83,7 +84,18 @@ private fun AudiobookListScreenPreview() {
             onSwipeDown = {},
             audiobookUiState = MutableStateFlow(AudiobookListUiState()),
             clearAudiobookUiStateError = {},
-            clearProcessorUiStateError = {}
+            clearProcessorUiStateError = {},
+            onAudiobookClick ={},
+            onAddAudiobook = { },
+            onPlayerPlayPause ={ },
+            onPlayerSkipNext = { },
+            onPlayerSkipPrevious ={ },
+            onPlayerClick = { },
+            collectionState = MutableStateFlow(CollectionListUiState()),
+            clearCollectionErrorMessage = { },
+            deleteCollection ={},
+            addCollection = {},
+            addAudiobookToCollection = { } as (Int, String) -> Unit,
         )
     }
 }
@@ -99,7 +111,18 @@ private fun AudiobookListScreenEmptyPreview() {
             onSwipeDown = {},
             audiobookUiState = MutableStateFlow(AudiobookListUiState()),
             clearAudiobookUiStateError = {},
-            clearProcessorUiStateError = {}
+            clearProcessorUiStateError = {},
+            onAudiobookClick ={},
+            onAddAudiobook = { },
+            onPlayerPlayPause ={ },
+            onPlayerSkipNext = { },
+            onPlayerSkipPrevious ={ },
+            onPlayerClick = { },
+            collectionState = MutableStateFlow(CollectionListUiState()),
+            clearCollectionErrorMessage = { },
+            deleteCollection ={},
+            addCollection = {},
+            addAudiobookToCollection = { } as (Int, String) -> Unit,
         )
     }
 }
@@ -115,8 +138,18 @@ private fun AudiobookListScreenSingleItemPreview() {
             onSwipeDown = {},
             audiobookUiState = MutableStateFlow(AudiobookListUiState()),
             clearAudiobookUiStateError = {},
-            clearProcessorUiStateError = {}
-
+            clearProcessorUiStateError = {},
+            onAudiobookClick ={},
+            onAddAudiobook = { },
+            onPlayerPlayPause ={ },
+            onPlayerSkipNext = { },
+            onPlayerSkipPrevious ={ },
+            onPlayerClick = { },
+            collectionState = MutableStateFlow(CollectionListUiState()),
+            clearCollectionErrorMessage = { },
+            deleteCollection ={},
+            addCollection = {},
+            addAudiobookToCollection = { } as (Int, String) -> Unit,
             )
     }
 }
@@ -132,8 +165,19 @@ private fun AudiobookListScreenWithLoadingPreview() {
             onSwipeDown = {},
             audiobookUiState = MutableStateFlow(AudiobookListUiState()),
             clearAudiobookUiStateError = {},
-            clearProcessorUiStateError = {}
-            )
+            clearProcessorUiStateError = {},
+            onAudiobookClick ={},
+            onAddAudiobook = { },
+            onPlayerPlayPause ={ },
+            onPlayerSkipNext = { },
+            onPlayerSkipPrevious ={ },
+            onPlayerClick = { },
+            collectionState = MutableStateFlow(CollectionListUiState()),
+            clearCollectionErrorMessage = { },
+            deleteCollection ={},
+            addCollection = {},
+            addAudiobookToCollection = { } as (Int, String) -> Unit,
+        )
     }
 }
 
