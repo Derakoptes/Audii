@@ -24,8 +24,8 @@ android {
         applicationId = "com.acube.audii"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.0.6"
+        versionCode = 7
+        versionName = "1.0.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
