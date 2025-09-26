@@ -46,6 +46,7 @@ data class Audiobook(
         parcel.readFloat(),
         parcel.createIntArray()!!.toList(),
         parcel.createLongArray()!!.toList(),
+        parcel.readString()!!
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -64,6 +65,7 @@ data class Audiobook(
         parcel.writeFloat(speed)
         parcel.writeIntArray(collections.toIntArray())
         parcel.writeLongArray(bookmarks.toLongArray())
+        parcel.writeString(datasourceId)
     }
 
     override fun describeContents(): Int {
@@ -177,7 +179,7 @@ interface AudiobookDao {
     suspend fun updateAudiobookCollection(id: String, collections: List<Int>)
 }
 
-@Database(entities = [Audiobook::class], exportSchema = true, version = 2)
+@Database(entities = [Audiobook::class], exportSchema = true, version = 3)
 @TypeConverters(Converters::class)
 abstract class AudiobookDatabase : RoomDatabase() {
     abstract fun audiobookDao(): AudiobookDao
