@@ -179,7 +179,13 @@ interface AudiobookDao {
     suspend fun updateAudiobookCollection(id: String, collections: List<Int>)
 }
 
-@Database(entities = [Audiobook::class], exportSchema = true, version = 3)
+@Database(entities = [Audiobook::class],
+    exportSchema = true,
+    autoMigrations = [
+        androidx.room.AutoMigration(from = 1, to = 2),
+        androidx.room.AutoMigration(from = 2, to = 3),
+                     ],
+    version = 3)
 @TypeConverters(Converters::class)
 abstract class AudiobookDatabase : RoomDatabase() {
     abstract fun audiobookDao(): AudiobookDao
