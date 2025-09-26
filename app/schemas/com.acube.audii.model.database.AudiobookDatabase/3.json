@@ -1,0 +1,109 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "a19974226590211d58b0ef95815b14aa",
+    "entities": [
+      {
+        "tableName": "audiobooks",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `author` TEXT NOT NULL, `narrator` TEXT NOT NULL, `uriString` TEXT NOT NULL, `duration` TEXT NOT NULL, `currentPosition` TEXT NOT NULL, `coverImageUriPath` TEXT, `modifiedDate` INTEGER NOT NULL, `skipTimings` TEXT NOT NULL, `speed` REAL NOT NULL, `collections` TEXT NOT NULL, `bookmarks` TEXT NOT NULL, `datasourceId` TEXT NOT NULL DEFAULT '', PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "author",
+            "columnName": "author",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "narrator",
+            "columnName": "narrator",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uriString",
+            "columnName": "uriString",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "duration",
+            "columnName": "duration",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentPosition",
+            "columnName": "currentPosition",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "coverImageUriPath",
+            "columnName": "coverImageUriPath",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "modifiedDate",
+            "columnName": "modifiedDate",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "skipTimings",
+            "columnName": "skipTimings",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "speed",
+            "columnName": "speed",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "collections",
+            "columnName": "collections",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bookmarks",
+            "columnName": "bookmarks",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "datasourceId",
+            "columnName": "datasourceId",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a19974226590211d58b0ef95815b14aa')"
+    ]
+  }
+}

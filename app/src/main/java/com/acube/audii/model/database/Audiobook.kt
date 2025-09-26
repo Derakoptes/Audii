@@ -2,6 +2,7 @@ package com.acube.audii.model.database
 
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
@@ -30,6 +31,7 @@ data class Audiobook(
     val speed: Float = 1.0f,
     val collections: List<Int> = emptyList(),
     val bookmarks: List<Long> = emptyList(),
+    @ColumnInfo(defaultValue = "")
     val datasourceId : String = ""
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
