@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -41,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -222,7 +224,7 @@ fun AudiobookDetailSheet(
             Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextButton(onClick = {
@@ -231,17 +233,26 @@ fun AudiobookDetailSheet(
                     }else{
                         deleteAudiobook("")
                     }
-                },
-                    ) {
-                    Text("Delete")
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete Audiobook",
+                        modifier = Modifier.size(20.dp),
+                        tint = Color.Red
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Delete", color = Color.Red)
                 }
-                IconButton(onClick = {
-                        markAudiobookAsCompleted(audiobook.id)
+                TextButton(onClick = {
+                    markAudiobookAsCompleted(audiobook.id)
                 }) {
                     Icon(
                         imageVector = Icons.Default.Check,
-                        contentDescription = "Mark as completed"
+                        contentDescription = "Mark as completed",
+                        modifier = Modifier.size(20.dp)
                     )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Mark As Completed")
                 }
             }
         }
