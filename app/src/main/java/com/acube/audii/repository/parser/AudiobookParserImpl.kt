@@ -29,12 +29,6 @@ class AudiobookParserImpl @Inject constructor(): AudiobookParser {
             throw IllegalArgumentException("Invalid URI: $uri")
         }
 
-        val title = if (documentFile.isDirectory) {
-            documentFile.name ?: "Unknown"
-        } else {
-            documentFile.name?.substringBeforeLast('.') ?: "Unknown"
-        }
-
         val audioFiles = if (documentFile.isDirectory) {
             documentFile.listFiles()
                 .filter { it.type?.startsWith("audio/") == true }
@@ -50,6 +44,12 @@ class AudiobookParserImpl @Inject constructor(): AudiobookParser {
         val firstAudioFile = audioFiles.first()
         val retriever = MediaMetadataRetriever()
         retriever.setDataSource(context, firstAudioFile.uri)
+
+        val title = if (documentFile.isDirectory) {
+            documentFile.name ?: "Unknown"
+        } else {
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: documentFile.name?.substringBeforeLast('.') ?: "Unknown"
+        }
 
         val possibleImage = if( documentFile.isDirectory )documentFile.listFiles().find { it.type?.startsWith("image/") == true }?.uri else null
         val imagePath = when (documentFile.isDirectory && possibleImage != null) {
@@ -87,6 +87,7 @@ class AudiobookParserImpl @Inject constructor(): AudiobookParser {
             tempRetriever.release()
             durationString?.toLongOrNull() ?: 0L
         }
+
 
 
         retriever.release()
