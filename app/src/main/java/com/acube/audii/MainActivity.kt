@@ -304,7 +304,7 @@ class MainActivity : ComponentActivity() {
                         clearCollectionErrorMessage = {collectionViewModel.clearErrorMessage()},
                         deleteCollection = {
                             collectionViewModel.deleteCollection(it)
-                                           audiobookViewModel.removeCollectionFromAudiobooks(it.id)
+                            audiobookViewModel.removeCollectionFromAudiobooks(it.id)
                                            },
                         addCollection = {collectionViewModel.addCollection(it)},
                         addAudiobookToCollection = {collection,id->audiobookViewModel.updateAudiobookCollections(collection,id)}

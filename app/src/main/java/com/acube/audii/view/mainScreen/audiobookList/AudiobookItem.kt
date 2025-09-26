@@ -1,8 +1,9 @@
 package com.acube.audii.view.mainScreen.audiobookList
 
-
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,42 +24,61 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.model.getImageFromPath
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AudiobookListItem(
     audiobook: Audiobook,
     modifier: Modifier = Modifier,
     onPlayClick: (String) -> Unit
 ) {
+    var showModalSheet by remember { mutableStateOf(false) }
+    val haptic = LocalHapticFeedback.current
+    val sheetState = rememberModalBottomSheetState()
+
     Card(
         modifier = modifier
             .fillMaxWidth()
-            ,
+            .combinedClickable(
+                onClick = { onPlayClick(audiobook.id) },
+                onLongClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    showModalSheet = true
+                }
+            ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(8.dp),
-        onClick = { onPlayClick(audiobook.id) },
-
-        ) {
+    ) {
         Row(
             modifier = Modifier
                 .padding(12.dp)
@@ -101,10 +122,99 @@ fun AudiobookListItem(
 
                 AudiobookProgressBar(audiobook = audiobook)
             }
+        }
+    }
 
+    if (showModalSheet) {
+        AudiobookDetailSheet(
+            audiobook = audiobook,
+            onDismiss = { showModalSheet = false },
+            sheetState = sheetState
+        )
+    }
+}
+
+@Composable
+fun AudiobookDetailRow(label: String, value: String) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "$label: ",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AudiobookDetailSheet(
+    audiobook: Audiobook,
+    onDismiss: () -> Unit,
+    sheetState: SheetState
+) {
+    val progressInfo = remember(audiobook) {
+        calculateProgressInfo(audiobook)
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.Top
+        ) {
+            AudiobookCover(
+                coverImagePath = audiobook.coverImageUriPath,
+                title = audiobook.title,
+                isCompleted = isCompleted(audiobook),
+                modifier = Modifier.size(120.dp).align(Alignment.CenterVertically)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = audiobook.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "by ${audiobook.author}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+//                Spacer(modifier = Modifier.height(8.dp))
+
+                AudiobookDetailRow(label = "Narrator", value = audiobook.narrator)
+                AudiobookDetailRow(label = "Duration", value = progressInfo.totalTimeFormatted)
+                AudiobookDetailRow(
+                    label = "Progress",
+                    value = "${progressInfo.overallProgress}% (${progressInfo.currentTimeFormatted})"
+                )
+
+
+//                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
 }
+
 
 @Composable
 private fun AudiobookCover(
@@ -115,27 +225,27 @@ private fun AudiobookCover(
 ) {
     val image = coverImagePath?.let { getImageFromPath(coverImagePath) }
     Box(modifier = modifier) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                if(coverImagePath!=null&&image!=null){
-                    Image(
-                        bitmap = image.asImageBitmap(),
-                        contentDescription = "$title cover",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }else {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = "No cover",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(6.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            if (coverImagePath != null && image != null) {
+                Image(
+                    bitmap = image.asImageBitmap(),
+                    contentDescription = "$title cover",
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = "No cover",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
 
         if (isCompleted) {
@@ -175,13 +285,13 @@ private fun ProgressSection(audiobook: Audiobook) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (!(currentChapterIndex==0 && totalChapters==1)){
+        if (!(currentChapterIndex == 0 && totalChapters == 1)) {
             Text(
                 text = "Ch. ${currentChapterIndex + 1}/$totalChapters",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        }else{
+        } else {
             Spacer(modifier = Modifier)
         }
 

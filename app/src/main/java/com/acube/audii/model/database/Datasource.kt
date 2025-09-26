@@ -27,8 +27,7 @@ interface DatasourceDao{
     suspend fun deleteDatasource(id:String)
 }
 
-//TODO:exporting the schema
-@Database(entities = [Datasource::class], exportSchema = false,version = 1)
+@Database(entities = [Datasource::class], exportSchema = true,version = 1)
 abstract class DatasourceDatabase : RoomDatabase(){
     abstract fun datasourceDao(): DatasourceDao
 }
