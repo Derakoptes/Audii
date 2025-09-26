@@ -85,17 +85,19 @@ private fun AudiobookListScreenPreview() {
             audiobookUiState = MutableStateFlow(AudiobookListUiState()),
             clearAudiobookUiStateError = {},
             clearProcessorUiStateError = {},
-            onAudiobookClick ={},
+            onAudiobookClick = {},
             onAddAudiobook = { },
-            onPlayerPlayPause ={ },
+            onPlayerPlayPause = { },
             onPlayerSkipNext = { },
-            onPlayerSkipPrevious ={ },
+            onPlayerSkipPrevious = { },
             onPlayerClick = { },
             collectionState = MutableStateFlow(CollectionListUiState()),
             clearCollectionErrorMessage = { },
-            deleteCollection ={},
+            deleteCollection = {},
             addCollection = {},
             addAudiobookToCollection = { } as (Int, String) -> Unit,
+            deleteAudiobook ={},
+            markAudiobookAsCompleted ={},
         )
     }
 }
@@ -123,6 +125,8 @@ private fun AudiobookListScreenEmptyPreview() {
             deleteCollection ={},
             addCollection = {},
             addAudiobookToCollection = { } as (Int, String) -> Unit,
+            deleteAudiobook ={},
+            markAudiobookAsCompleted = {},
         )
     }
 }
@@ -150,6 +154,8 @@ private fun AudiobookListScreenSingleItemPreview() {
             deleteCollection ={},
             addCollection = {},
             addAudiobookToCollection = { } as (Int, String) -> Unit,
+            deleteAudiobook ={},
+            markAudiobookAsCompleted ={},
             )
     }
 }
@@ -177,6 +183,8 @@ private fun AudiobookListScreenWithLoadingPreview() {
             deleteCollection ={},
             addCollection = {},
             addAudiobookToCollection = { } as (Int, String) -> Unit,
+            deleteAudiobook = {},
+            markAudiobookAsCompleted ={},
         )
     }
 }
@@ -198,6 +206,8 @@ fun PreviewAudiobookListItem() {
             narrator = "Sample Narrator"
         ),
         onPlayClick = {},
+        deleteAudiobook = {},
+        markAudiobookAsCompleted ={},
     )
 }
 

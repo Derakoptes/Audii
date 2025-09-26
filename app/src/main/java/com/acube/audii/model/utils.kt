@@ -3,6 +3,7 @@ package com.acube.audii.model
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import com.acube.audii.model.database.Audiobook
 import java.io.ByteArrayOutputStream
 import java.io.File
 
@@ -37,4 +38,8 @@ fun compareUris(
     if(uri1 == uri2)return true
     if(uri1.lastPathSegment.equals(uri2.lastPathSegment))return true
     return uri1.path==uri2.path
+}
+
+fun Audiobook.isCompleted():Boolean{
+    return  this.currentPosition.second == this.duration.last() && this.currentPosition.first == this.duration.size-1
 }

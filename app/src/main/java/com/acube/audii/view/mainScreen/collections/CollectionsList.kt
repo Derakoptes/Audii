@@ -28,7 +28,9 @@ fun CollectionsScreen(
     addCollection: (Collection) -> Unit,
     audiobooks: List<Audiobook>,
     onAudiobookItemClick: (String) -> Unit,
-    addAudiobookToCollection: (collectionId: Int, audiobookId: String) -> Unit
+    addAudiobookToCollection: (collectionId: Int, audiobookId: String) -> Unit,
+    deleteAudiobook: (String) -> Unit,
+    markAudiobookAsCompleted: (String) -> Unit
 ) {
     val state by uiState.collectAsState()
     val collections by state.collections.collectAsState()
@@ -70,7 +72,9 @@ fun CollectionsScreen(
                     AudiobookList(
                         audiobooks = audiobooksInCollection,
                         onAudiobookClick = onAudiobookItemClick,
-                        isCollectionScreen = true
+                        isCollectionScreen = true,
+                        deleteAudiobook = deleteAudiobook,
+                        markAudiobookAsCompleted = markAudiobookAsCompleted
                     )
                 }
 

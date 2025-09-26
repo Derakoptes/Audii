@@ -30,6 +30,7 @@ data class Audiobook(
     val speed: Float = 1.0f,
     val collections: List<Int> = emptyList(),
     val bookmarks: List<Long> = emptyList(),
+    val datasourceId : String = ""
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,

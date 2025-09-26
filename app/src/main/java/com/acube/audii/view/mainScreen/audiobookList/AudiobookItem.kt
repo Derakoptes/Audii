@@ -26,11 +26,13 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -57,7 +59,9 @@ import java.util.concurrent.TimeUnit
 fun AudiobookListItem(
     audiobook: Audiobook,
     modifier: Modifier = Modifier,
-    onPlayClick: (String) -> Unit
+    onPlayClick: (String) -> Unit,
+    deleteAudiobook: (String) -> Unit,
+    markAudiobookAsCompleted: (String) -> Unit
 ) {
     var showModalSheet by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
@@ -129,7 +133,9 @@ fun AudiobookListItem(
         AudiobookDetailSheet(
             audiobook = audiobook,
             onDismiss = { showModalSheet = false },
-            sheetState = sheetState
+            sheetState = sheetState,
+            deleteAudiobook = deleteAudiobook,
+            markAudiobookAsCompleted = markAudiobookAsCompleted,
         )
     }
 }
@@ -158,7 +164,9 @@ fun AudiobookDetailRow(label: String, value: String) {
 fun AudiobookDetailSheet(
     audiobook: Audiobook,
     onDismiss: () -> Unit,
-    sheetState: SheetState
+    sheetState: SheetState,
+    deleteAudiobook: (String) -> Unit,
+    markAudiobookAsCompleted: (String) -> Unit
 ) {
     val progressInfo = remember(audiobook) {
         calculateProgressInfo(audiobook)
@@ -168,48 +176,73 @@ fun AudiobookDetailSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
     ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.Top
-        ) {
-            AudiobookCover(
-                coverImagePath = audiobook.coverImageUriPath,
-                title = audiobook.title,
-                isCompleted = isCompleted(audiobook),
-                modifier = Modifier.size(120.dp).align(Alignment.CenterVertically)
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.Top
             ) {
-                Text(
-                    text = audiobook.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp,
-                    color = MaterialTheme.colorScheme.onSurface
+                AudiobookCover(
+                    coverImagePath = audiobook.coverImageUriPath,
+                    title = audiobook.title,
+                    isCompleted = isCompleted(audiobook),
+                    modifier = Modifier
+                        .size(120.dp)
+                        .align(Alignment.CenterVertically)
                 )
-                Text(
-                    text = "by ${audiobook.author}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-//                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = audiobook.title,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 17.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "by ${audiobook.author}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
-                AudiobookDetailRow(label = "Narrator", value = audiobook.narrator)
-                AudiobookDetailRow(label = "Duration", value = progressInfo.totalTimeFormatted)
-                AudiobookDetailRow(
-                    label = "Progress",
-                    value = "${progressInfo.overallProgress}% (${progressInfo.currentTimeFormatted})"
-                )
+                    AudiobookDetailRow(label = "Narrator", value = audiobook.narrator)
+                    AudiobookDetailRow(label = "Duration", value = progressInfo.totalTimeFormatted)
+                    AudiobookDetailRow(
+                        label = "Progress",
+                        value = "${progressInfo.overallProgress}% (${progressInfo.currentTimeFormatted})"
+                    )
 
-
-//                Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(onClick = {
+                    if (audiobook.datasourceId.isEmpty()){
+                        deleteAudiobook(audiobook.id)
+                    }else{
+                        deleteAudiobook("")
+                    }
+                },
+                    ) {
+                    Text("Delete")
+                }
+                IconButton(onClick = {
+                        markAudiobookAsCompleted(audiobook.id)
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Mark as completed"
+                    )
+                }
             }
         }
     }

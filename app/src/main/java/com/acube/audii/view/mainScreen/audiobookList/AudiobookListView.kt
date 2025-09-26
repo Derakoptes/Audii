@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.model.database.Collection
+import com.acube.audii.model.isCompleted
 import com.acube.audii.view.mainScreen.audiobookList.AudiobookListItem
 import com.acube.audii.view.mainScreen.collections.CollectionsScreen
 import com.acube.audii.view.mainScreen.player.BottomPlayerSheet
@@ -78,7 +79,9 @@ fun AudiobookListScreen(
     clearCollectionErrorMessage: () -> Unit,
     deleteCollection: (Collection) -> Unit,
     addCollection:(Collection)->Unit,
-    addAudiobookToCollection:(collectionId:Int,audiobookId:String)->Unit
+    addAudiobookToCollection:(collectionId:Int,audiobookId:String)->Unit,
+    deleteAudiobook: (String) -> Unit,
+    markAudiobookAsCompleted: (String) -> Unit
 ) {
     val audiobookList by audiobooks.collectAsState(initial = emptyList())
     val isAdding by isAddingAudiobook.collectAsState()
@@ -174,7 +177,9 @@ fun AudiobookListScreen(
                                 addCollection = addCollection,
                                 audiobooks = filteredAudiobooks,
                                 onAudiobookItemClick = onAudiobookClick,
-                                addAudiobookToCollection = addAudiobookToCollection
+                                addAudiobookToCollection = addAudiobookToCollection,
+                                deleteAudiobook = deleteAudiobook,
+                                markAudiobookAsCompleted = markAudiobookAsCompleted
                             )
                         }
                     } else {
@@ -195,6 +200,8 @@ fun AudiobookListScreen(
                                 AudiobookList(
                                     audiobooks = filteredAudiobooks,
                                     onAudiobookClick = onAudiobookClick,
+                                    deleteAudiobook = deleteAudiobook,
+                                    markAudiobookAsCompleted = markAudiobookAsCompleted
                                 )
                             }
                         }
@@ -332,7 +339,9 @@ private fun SearchTopBar(
  fun AudiobookList(
     audiobooks: List<Audiobook>,
     onAudiobookClick: (String) -> Unit,
-    isCollectionScreen: Boolean = false
+    isCollectionScreen: Boolean = false ,
+    deleteAudiobook: (String) -> Unit,
+    markAudiobookAsCompleted: (String) -> Unit
 ) {
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
@@ -343,6 +352,7 @@ private fun SearchTopBar(
                 (it.currentPosition.first > 0 || it.currentPosition.second > 0)
             }
             .sortedByDescending { it.modifiedDate }
+            .filter {!it.isCompleted()}
             .take(2)
 
         if (recentlyPlayed.isNotEmpty()) {
@@ -353,6 +363,8 @@ private fun SearchTopBar(
                 AudiobookListItem(
                     audiobook = audiobook,
                     onPlayClick =  { onAudiobookClick(audiobook.id) },
+                    deleteAudiobook = deleteAudiobook,
+                    markAudiobookAsCompleted = markAudiobookAsCompleted
                 )
             }
             item {
@@ -371,6 +383,8 @@ private fun SearchTopBar(
                 AudiobookListItem(
                     audiobook = audiobook,
                     onPlayClick = { onAudiobookClick(audiobook.id) },
+                    deleteAudiobook= deleteAudiobook,
+                markAudiobookAsCompleted= markAudiobookAsCompleted,
                 )
             }
         }

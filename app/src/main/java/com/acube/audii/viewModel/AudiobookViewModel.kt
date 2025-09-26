@@ -98,7 +98,7 @@ class AudiobookViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    fun addAudiobook(audiobookData: AudiobookData) {
+    fun addAudiobook(audiobookData: AudiobookData,dataSourceId:String) {
         viewModelScope.launch {
             try {
                 if (_audioBookUiState.value.audiobooks.value.any {
@@ -116,7 +116,8 @@ class AudiobookViewModel @Inject constructor(
                         currentPosition = Pair(0, 0L),
                         coverImageUriPath = audiobookData.imageUri ?: "",
                         modifiedDate = System.currentTimeMillis(),
-                        narrator = audiobookData.narrator
+                        narrator = audiobookData.narrator,
+                        datasourceId = dataSourceId,
                     )
                 )
             } catch (e: Exception) {
@@ -156,7 +157,20 @@ class AudiobookViewModel @Inject constructor(
             errorMessage = null
         )
     }
-
+    fun markAudiobookAsCompleted(id: String) {
+        viewModelScope.launch {
+            try {
+                val audiobook = _audioBookUiState.value.audiobooks.value.find { it.id == id }
+                audiobook?.let {
+                    val lastTrackIndex = it.duration.size - 1
+                    val lastTrackDuration = it.duration[lastTrackIndex]
+                    repository.updatePlaybackPosition(id, Pair(lastTrackIndex, lastTrackDuration))
+                }
+            } catch (e: Exception) {
+                _audioBookUiState.value = _audioBookUiState.value.copy(errorMessage = "Failed to mark audiobook as completed: ${e.message}")
+            }
+        }
+    }
     fun updateAudiobookCollections(collectionId: Int, id: String) {
         viewModelScope.launch {
             try {
@@ -218,10 +232,20 @@ class AudiobookViewModel @Inject constructor(
             }
         }
     }
-
-    fun syncDatasources(): List<Uri> {
+    fun restart(id: String){
+        viewModelScope.launch {
+            try{
+                repository.updatePlaybackPosition(id, Pair(0, 0L))
+            }catch (e: Exception) {
+                _audioBookUiState.value = _audioBookUiState.value.copy(
+                    errorMessage = "Failed to save audiobook progress: ${e.message}"
+                )
+            }
+        }
+    }
+    fun syncDatasources(): List<Pair<Uri, String>> {
         _audioBookUiState.value = _audioBookUiState.value.copy(isLoading = true)
-        val toReturn = mutableListOf<Uri>()
+        val toReturn = mutableListOf<Pair<Uri,String>>()
 
         runBlocking {
             val job = viewModelScope.launch(Dispatchers.IO) {
@@ -243,7 +267,7 @@ class AudiobookViewModel @Inject constructor(
                                     if (existingUriStrings.none { existingUri ->
                                             compareUris(existingUri.toUri(), file2.uri)
                                         }) {
-                                        toReturn.add(file2.uri)
+                                        toReturn.add(Pair(file2.uri,dataSource.id))
                                     }
                                 }
                             } else {
@@ -264,16 +288,20 @@ class AudiobookViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    fun addDatasource(uri: String) {
+    fun addDatasource(uri: String):String {
         try {
-            viewModelScope.launch(Dispatchers.IO) {
-                datasourceRepository.addDatasource(
-                    Datasource(
-                        id = Uuid.random().toString(),
-                        uri = uri
+            val id=  Uuid.random().toString()
+            runBlocking{
+                viewModelScope.launch(Dispatchers.IO) {
+                    datasourceRepository.addDatasource(
+                        Datasource(
+                            id = id,
+                            uri = uri
+                        )
                     )
-                )
+                }
             }
+            return id
         } catch (e: Exception) {
             throw Exception("Error adding datasource: ${e.message}")
         }

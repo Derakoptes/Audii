@@ -19,6 +19,7 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.lifecycle.lifecycleScope
 
 import com.acube.audii.model.database.Audiobook
+import com.acube.audii.model.isCompleted
 import com.acube.audii.repository.filePicker.AudiobookPicker
 import com.acube.audii.ui.theme.AudiiTheme
 import com.acube.audii.view.mainScreen.audiobookList.AddAudiobookDialog
@@ -60,7 +61,7 @@ class MainActivity : ComponentActivity() {
                 uri?.let {
                     val audiobookData = processorViewModel.processSingleFile(it)
                     withContext(Dispatchers.IO) {
-                        audiobookViewModel.addAudiobook(audiobookData)
+                        audiobookViewModel.addAudiobook(audiobookData,"")
                         withContext(Dispatchers.Main) {
                             showToast(
                                 "Added audiobook: ${audiobookData.title}",
@@ -85,7 +86,7 @@ class MainActivity : ComponentActivity() {
                 uri?.let {
                     val audiobookData = processorViewModel.processFolderForSingleAudiobook(it)
                     withContext(Dispatchers.IO) {
-                        audiobookViewModel.addAudiobook(audiobookData)
+                        audiobookViewModel.addAudiobook(audiobookData,"")
                         withContext(Dispatchers.Main) {
                             showToast(
                                 "Added audiobook: ${audiobookData.title}",
@@ -113,10 +114,10 @@ class MainActivity : ComponentActivity() {
                 uri?.let {
                     val audiobooksData = processorViewModel.processFolderForMultipleAudiobooks(it)
                     if (audiobooksData.isNotEmpty()) {
-                        audiobookViewModel.addDatasource(uri.toString())
+                        val id  = audiobookViewModel.addDatasource(uri.toString())
                         withContext(Dispatchers.IO) {
                             audiobooksData.forEach { data ->
-                                audiobookViewModel.addAudiobook(data)
+                                audiobookViewModel.addAudiobook(data,id)
                             }
                             withContext(Dispatchers.Main) {
                                 showToast(
@@ -198,9 +199,9 @@ class MainActivity : ComponentActivity() {
                         Toast.LENGTH_SHORT
                     )
                     unAdded.forEach {
-                        val audiobookData = processorViewModel.processSingleFile(it)
+                        val audiobookData = processorViewModel.processSingleFile(it.first)
                         withContext(Dispatchers.IO) {
-                            audiobookViewModel.addAudiobook(audiobookData)
+                            audiobookViewModel.addAudiobook(audiobookData,it.second)
                             withContext(Dispatchers.Main) {
                                 showToast(
                                     "Added audiobook: ${audiobookData.title}",
@@ -270,8 +271,12 @@ class MainActivity : ComponentActivity() {
                             lifecycleScope.launch {
                                 try {
                                     val audiobook = audiobooks.value.find { it.id == audiobookId }
+
                                     audiobook?.let {
-                                        playerViewModel.playAudiobook(it)
+                                        if(it.isCompleted()){
+                                            audiobookViewModel.restart(it.id)
+                                        }
+                                        playerViewModel.playAudiobook(it.copy(currentPosition = Pair(0,0L)))
                                         audiobookViewModel.setCurrentAudiobook(audiobook.id)
                                     }
                                 } catch (e: Exception) {
@@ -307,7 +312,14 @@ class MainActivity : ComponentActivity() {
                             audiobookViewModel.removeCollectionFromAudiobooks(it.id)
                                            },
                         addCollection = {collectionViewModel.addCollection(it)},
-                        addAudiobookToCollection = {collection,id->audiobookViewModel.updateAudiobookCollections(collection,id)}
+                        addAudiobookToCollection = {collection,id->audiobookViewModel.updateAudiobookCollections(collection,id)},
+                        deleteAudiobook = {
+                            if(it.isEmpty()){
+                                showToast("Cannot delete Audiobooks added from a repository",Toast.LENGTH_LONG)
+                            }else{
+                                audiobookViewModel.deleteAudiobook(it)
+                            } },
+                        markAudiobookAsCompleted = { audiobookViewModel.markAudiobookAsCompleted(it) }
                     )
                 }
                 if(showAddDialog)
