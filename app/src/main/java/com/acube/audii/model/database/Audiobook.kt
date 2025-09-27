@@ -29,7 +29,9 @@ data class Audiobook(
     val modifiedDate: Long = System.currentTimeMillis(),//time since
     val skipTimings: Pair<Int, Int> = Pair(10, 10),//forward and backward skipping timings
     val speed: Float = 1.0f,
+    @ColumnInfo(defaultValue = "")
     val collections: List<Int> = emptyList(),
+    @ColumnInfo(defaultValue = "")
     val bookmarks: List<Long> = emptyList(),
     @ColumnInfo(defaultValue = "")
     val datasourceId : String = ""
@@ -186,7 +188,8 @@ interface AudiobookDao {
     autoMigrations = [
         androidx.room.AutoMigration(from = 1, to = 2),
         androidx.room.AutoMigration(from = 2, to = 3),
-                     ],
+        androidx.room.AutoMigration(from = 1, to = 3),
+    ],
     version = 3)
 @TypeConverters(Converters::class)
 abstract class AudiobookDatabase : RoomDatabase() {

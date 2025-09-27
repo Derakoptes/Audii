@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "a19974226590211d58b0ef95815b14aa",
+    "identityHash": "0c7d787a7168ffd1c0b9591f90b30585",
     "entities": [
       {
         "tableName": "audiobooks",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `author` TEXT NOT NULL, `narrator` TEXT NOT NULL, `uriString` TEXT NOT NULL, `duration` TEXT NOT NULL, `currentPosition` TEXT NOT NULL, `coverImageUriPath` TEXT, `modifiedDate` INTEGER NOT NULL, `skipTimings` TEXT NOT NULL, `speed` REAL NOT NULL, `collections` TEXT NOT NULL, `bookmarks` TEXT NOT NULL, `datasourceId` TEXT NOT NULL DEFAULT '', PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `author` TEXT NOT NULL, `narrator` TEXT NOT NULL, `uriString` TEXT NOT NULL, `duration` TEXT NOT NULL, `currentPosition` TEXT NOT NULL, `coverImageUriPath` TEXT, `modifiedDate` INTEGER NOT NULL, `skipTimings` TEXT NOT NULL, `speed` REAL NOT NULL, `collections` TEXT NOT NULL DEFAULT '', `bookmarks` TEXT NOT NULL DEFAULT '', `datasourceId` TEXT NOT NULL DEFAULT '', PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -77,13 +77,15 @@
             "fieldPath": "collections",
             "columnName": "collections",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": true,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "bookmarks",
             "columnName": "bookmarks",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": true,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "datasourceId",
@@ -103,7 +105,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a19974226590211d58b0ef95815b14aa')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0c7d787a7168ffd1c0b9591f90b30585')"
     ]
   }
 }
