@@ -3,6 +3,7 @@ package com.acube.audii
 import AudiobookListScreen
 import android.app.Application
 import android.os.Bundle
+import android.provider.DocumentsContract
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,6 +17,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.intl.Locale
+import androidx.core.net.toUri
+import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.lifecycleScope
 
 import com.acube.audii.model.database.Audiobook
@@ -271,8 +274,21 @@ class MainActivity : ComponentActivity() {
                             lifecycleScope.launch {
                                 try {
                                     val audiobook = audiobooks.value.find { it.id == audiobookId }
-
                                     audiobook?.let {
+                                        when(DocumentsContract.isTreeUri(audiobook.uriString.toUri())) {
+                                            true -> {
+                                                val file = DocumentFile.fromTreeUri(this@MainActivity,audiobook.uriString.toUri())
+                                                if( file==null || !file.exists() || file.listFiles().size<=0){
+                                                    throw Exception("Audiobook Doesn't Exist at path : ${file?.uri?.path}")
+                                                }
+                                            }
+                                            false -> {
+                                                val file = DocumentFile.fromSingleUri(this@MainActivity,audiobook.uriString.toUri())
+                                                if(file ==null || !file.exists()){
+                                                    throw Exception("Audiobook Doesn't Exist at path : ${file?.uri?.path}")
+                                                }
+                                            }
+                                        }
                                         if(it.isCompleted()){
                                             audiobookViewModel.restart(it.id)
                                         }
