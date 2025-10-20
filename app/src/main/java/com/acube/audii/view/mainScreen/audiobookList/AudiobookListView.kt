@@ -43,9 +43,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.acube.audii.R
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.model.database.Collection
 import com.acube.audii.model.isCompleted
@@ -273,10 +275,21 @@ private fun AudiobookTopBar(
                 }
             }
             IconButton(onClick = onToggleView) {
-                Icon(
-                    imageVector = if (isShowingCollections) Icons.Filled.Menu else Icons.AutoMirrored.Filled.List,
-                    contentDescription = if (isShowingCollections) "View Audiobook List" else "View Collections"
-                )
+                when(isShowingCollections){
+                    true ->{
+                        Icon(
+                            imageVector =Icons.AutoMirrored.Filled.List,
+                            contentDescription = "View Audiobook List"
+                        )
+                    }
+                    false -> {
+                        Icon(
+                            painter = painterResource(R.drawable.collections),
+                            contentDescription = "View Collections",
+                            modifier = Modifier.height(20.dp)
+                        )
+                    }
+                }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
