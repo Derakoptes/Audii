@@ -364,7 +364,7 @@ fun PlayerSheet(
                                         modifier = Modifier.size(72.dp),
                                         shape = CircleShape,
                                         colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.primary
+                                            containerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
                                         )
                                     ) {
                                         when (playerState.isPlaying) {

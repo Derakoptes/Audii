@@ -1,10 +1,12 @@
 package com.acube.audii.view.mainScreen.collections
 
 import AudiobookList
+import android.R
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -13,6 +15,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import com.acube.audii.model.database.Audiobook
 import com.acube.audii.model.database.Collection
@@ -87,7 +91,10 @@ fun CollectionsScreen(
                 if (availableAudiobooksToAdd.isNotEmpty()) {
                     Button(
                         onClick = { showAddAudiobooksDialog = true },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        colors = ButtonDefaults.buttonColors().copy(
+                            containerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
+                        )
                     ) {
                         Text("Add Audiobooks to ${selectedCollection?.name ?: "Collection"}")
                     }
@@ -146,9 +153,11 @@ fun CollectionsScreen(
                 onClick = { showDialog = true },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(16.dp)
+                    .padding(16.dp),
+                containerColor = MaterialTheme.colorScheme.background
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add Collection")
+                Icon(Icons.Filled.Add, contentDescription = "Add Collection", tint = MaterialTheme.colorScheme.onBackground
+                )
             }
         }
     }
@@ -157,13 +166,18 @@ fun CollectionsScreen(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Add New Collection") },
+            title = { Text("Create New Collection") },
             text = {
                 OutlinedTextField(
                     value = newCollectionName,
                     onValueChange = { newCollectionName = it },
                     label = { Text("Collection Name") },
-                    singleLine = true
+                    singleLine = true,
+                    colors = TextFieldDefaults.colors().copy(
+                        focusedContainerColor = MaterialTheme.colorScheme.background,
+                        cursorColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                    )
                 )
             },
             confirmButton = {
@@ -174,16 +188,23 @@ fun CollectionsScreen(
                             newCollectionName = ""
                             showDialog = false
                         }
-                    }
+                    },
+                    colors = ButtonDefaults.buttonColors().copy(
+                        containerColor = Color.Transparent,
+                    )
                 ) {
-                    Text("Add")
+                    Text("Add", color = MaterialTheme.colorScheme.onBackground)
                 }
             },
             dismissButton = {
-                Button(onClick = { showDialog = false }) {
-                    Text("Cancel")
+                Button(onClick = { showDialog = false },
+                    colors = ButtonDefaults.buttonColors().copy(
+                        containerColor = Color.Transparent,
+                    )) {
+                    Text("Cancel", color = MaterialTheme.colorScheme.onBackground)
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.background
         )
     }
 
@@ -247,7 +268,10 @@ fun CollectionItem(
             .fillMaxWidth()
             .padding(vertical = 4.dp, horizontal = 8.dp)
             .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors().copy(
+            containerColor = MaterialTheme.colorScheme.background
+        )
     ) {
         Row(
             modifier = Modifier
@@ -275,6 +299,7 @@ private fun AddAudiobooksDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.background,
         title = { Text("Add to '$collectionName'") },
         text = {
             if (availableAudiobooks.isEmpty()) {
@@ -303,7 +328,10 @@ private fun AddAudiobooksDialog(
                                     } else {
                                         selectedAudiobookIds - audiobook.id
                                     }
-                                }
+                                },
+                                colors = CheckboxDefaults.colors().copy(
+                                    checkedCheckmarkColor = MaterialTheme.colorScheme.onBackground
+                                )
                             )
                             Spacer(Modifier.width(12.dp))
                             Text(
@@ -320,14 +348,21 @@ private fun AddAudiobooksDialog(
                 onClick = {
                     onConfirm(selectedAudiobookIds.toList())
                 },
-                enabled = selectedAudiobookIds.isNotEmpty()
+                enabled = selectedAudiobookIds.isNotEmpty(),
+                colors = ButtonDefaults.buttonColors().copy(
+                    containerColor = Color.Transparent,
+                    disabledContainerColor = MaterialTheme.colorScheme.background.copy(0.5f)
+                )
             ) {
-                Text("Add Selected")
+                Text("Add Selected",color=MaterialTheme.colorScheme.onBackground)
             }
         },
         dismissButton = {
-            Button(onClick = onDismiss) {
-                Text("Cancel")
+            Button(onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors().copy(
+                    containerColor = Color.Transparent,
+                )) {
+                Text("Cancel", color=MaterialTheme.colorScheme.onBackground)
             }
         }
     )

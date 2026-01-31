@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -278,8 +279,9 @@ private fun AudiobookTopBar(
                 when(isShowingCollections){
                     true ->{
                         Icon(
-                            imageVector =Icons.AutoMirrored.Filled.List,
-                            contentDescription = "View Audiobook List"
+                            painter = painterResource(R.drawable.list),
+                            contentDescription = "View Audiobook List",
+                            modifier = Modifier.height(20.dp)
                         )
                     }
                     false -> {
@@ -451,7 +453,10 @@ private fun EmptyStateContent(
 
         Button(
             onClick = onAddAudiobook,
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(top = 8.dp),
+            colors = ButtonDefaults.buttonColors().copy(
+                containerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
+            )
         ) {
             Icon(
                 imageVector = Icons.Default.Add,

@@ -163,7 +163,7 @@ fun BottomPlayerSheet(
                                     imageVector = Icons.Default.PlayArrow,
                                     contentDescription = "Play",
                                     modifier =  Modifier.size(32.dp),
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
                                 )
                             }
                             true ->{
@@ -171,7 +171,7 @@ fun BottomPlayerSheet(
                                     painter = painterResource(id = R.drawable.pause),
                                     contentDescription = "Pause",
                                     modifier =  Modifier.size(32.dp),
-                                    colorFilter = ColorFilter.tint(color= MaterialTheme.colorScheme.primary)
+                                    colorFilter = ColorFilter.tint(color= MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f))
                                 )
                             }
                         }
